@@ -1,0 +1,140 @@
+basic syntax
+use HCL - HashiCorp configuration Language 
+
+
+block parameter {
+
+      arguments
+}
+
+in block  :  if  you want to create infra like vm, docker contaner etc add "resource" block , 
+             if you want to show some output through terraform then add "output" block, 
+             if you want to store some variable then add "variable" block, 
+
+in Parameter :  you have to add what type of resource and resource name , output and var you have to add
+              so resource name tht you are adding that is jst the resource name of the terraform parameter not the actual infra name ,
+              the infra name that you will create will be under arguments 
+
+like resource        aws_instance              my_new_vm     {  #here in aws_instance the aws is the provider which you can fnd in .terraform folder
+    ---------       ---------               -------------
+    block        parameter-resourcetype       resource name                                 arguments like name size 
+     
+}
+
+
+first do terraform init -- to initialize terraform in the folder 
+terraform validate --  to validate the .tf file that is correct or not 
+terraform plan -- to check the output / like what you will get after executing the tf file /like a dry run 
+terraform apply -- to get the final run output 
+terraform destroy -- to destroy the infra that you created
+terraform apply -auto-approve  --  auto-approve  while applying 
+
+example : 
+terraform plan
+
+  # local_file.my_file will be created
+  + resource "local_file" "my_file" {
+      + content              = "this is a new file created by me"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "my_file.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+here you can see some are showing (known after apply)  so these are "attributes" which you will ge after the execution and the value like these  filename = "my_file.txt" 
+that you added before the execution are "arguments".
+
+so here local_file in this local is the provider - if you check in terraform foler you will get .terraform >> provider >> registry.terraform.io >> hashicorp >> local 
+
+so that last local is the provider , and when you use these resource type it and aply it will download and add the respective provider in this folder
+the provider is like lets say you want to create a resource from aws so aws is the provider 
+
+if i want to manually install a provider --- create a terraform.tf file 
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"           #  these are arguments
+      version = "6.4.0"
+    }
+  }
+}    like this To install this provider, copy and paste this code into your Terraform configuration. Then, run terraform init.
+here terraform is the name of the block 
+
+## to connect to a cloud account you need to install cli like aws or azure cli  and login to your account
+follow the steps of the login according to the cloud , and you have to craete a user in IAM and give the user access to create the resources in the preffered cloud
+the user should be created t=in the cloud portal
+
+Absolutely — here’s a concrete example project structure showing how and why splitting .tf files makes things cleaner and more scalable.
+
+🗂️ Example Project Structure
+
+my-terraform-project/
+├── terraform.tf       ← Required providers
+├── provider.tf        ← Provider setup / credentials
+├── resource-group.tf  ← Resource group definition
+├── network.tf         ← Virtual network and subnet
+├── vm.tf              ← Virtual machine definition
+└── variables.tf       ← Input variables
+
+------
+use reference of a resource in another resource block 
+
+lets say you created a VPC for aws ec2 instance like this 
+
+resource "aws_default_vpc" "my_vpc" {
+       tags = {
+         Name = "my_macvpc" 
+       }
+}
+
+you then create a security group in which tyou need to specify the vpc id ,
+  you can refer like this , ##  here you take the parameter_resource_type from the vpc resource and added the ame my_vpc that you assigned to the vpc resource and then .id or name that you want to add  like this :  vpc_id      = aws_default_vpc.my_vpc.id
+THIS IS CALLED "INTERPOLATION" : it is a way in which you can inherit/extract the values from a terraform block 
+
+  resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic and all outbound traffic"
+  vpc_id      = aws_default_vpc.my_vpc.id
+
+}
+
+so basically      """   parameter_resource_type.resourcename.thething_you_want  """
+
+--------------
+Variable In Terraform
+
+TO REFERENCE variable in a resource block create a variable block and add var.var_name
+variable "bucket_name" {
+  description = "Name of the S3 bucket"
+  type        = string
+  default     = "my-unique-terraform-bucket-123"
+}
+
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = var.bucket_name
+  acl    = "private"
+}
+
+this is a reference of output block
+output "bucket_name" {
+  description = "The name of the created S3 bucket"
+  value       = aws_s3_bucket.my_bucket.bucket
+}
+
+---------------------
+if you want to install anything in the instances /vm servers then you can add
+""" user_data = file(install.sh) """
+
+install.sh is the file where your bash installation script is there and 
+"" remember it will only execute while creating the server fir the first time only ""
+
+so user_data is the arguments who lets you run shell scripts or some shell command at the startup 
+
