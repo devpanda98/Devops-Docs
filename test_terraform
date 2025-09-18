@@ -165,6 +165,123 @@ export TF_VAR_region="us-east-1"  ## this you can pass in command line ,so you c
 
 variableble types:
 
+In terraform every resource , variable and output blocks should have unique names , no repeation in values and all
+
+the variable file should be in the same folder as terraform.th]fstate 
+you can access 
+Types:
+
+| Type   | Description                     | Example                     |
+| ------ | ------------------------------- | --------------------------- |
+| string | Text value                      | `"us-east-1"`               |
+| number | Numeric value                   | `3`                         |
+| bool   | True or false                   | `true`                      |
+| list   | Ordered collection              | `["a","b","c"]`             |
+| map    | Key-value pairs                 | `{"key1":"value1"}`         |
+| set    | Unique unordered elements       | `[1,2,3]`                   |
+| object | Structured data with attributes | `{"cpu":4,"memory":"16GB"}` |
+| tuple  | Ordered heterogeneous elements  | `[1,"abc"]`                 |
+
+
+1. Map:  
+
+Definition: Key-value pairs (like a dictionary in Python, or object in JSON).
+When to use:
+You need to look up values by key.
+You want to group related simple values.
+
+resource "local_file" "dummy_file" {
+    filename = "C:\\Users\\Debasish.Panda\\Desktop\\test\\dummy.txt"
+    content = var.content_map["content2"]
+  
+}
+
+variable "content_map" {
+    type = map
+    default = {
+        "content1" = "this is first value"
+        "content2" = "this is second value"
+        }
+}
+
+2. list: 
+
+List
+
+Definition: An ordered collection of values (duplicates allowed).
+When to use:
+You care about order (e.g., first, second, third).
+
+You might reference elements by index (list[0])
+in variable.tf: 
+
+
+variable "filelist" {
+    type = list
+    default = ["C:\\Users\\Debasish.Panda\\Desktop\\test\\test23.txt","C:\\Users\\Debasish.Panda\\Desktop\\test\\test53.txt"]
+	
+}
+
+in main.tf :
+resource "local_file" "dummy_file" {
+    filename = var.filelist[0]
+    content = var.content_map["content1"]
+  }
+resource "local_file" "dummy1_file" {
+    filename = var.filelist[1]
+    content = var.content_map["content2"]
+}
+
+3. object: 
+in here you will ad user defined data types like this 
+
+Definition: A structured type with named attributes (like a record or schema).
+When to use:
+You want to enforce a schema with specific attribute names.
+You’re modeling a complex resource configuration.
+
+variable "aws_ec2_object" {
+
+    type = object({
+        name = string
+        instances = number
+        keys = list(string) 
+
+    })
+    default = {
+       name = "my-app"
+       instances = 2
+       keys = ["gwydvywged536e24","sdbuwhbduhw24342"]
+    }
+}
+
+in main.tf :
+you can call the values like 
+
+output "aws_ec21_info" {
+ 
+     value = var.aws_ec2_object.name
+}  
+
+var.object_name.the_key_whichvalueyouwant
+
+
+4 set :
+
+Definition: An unordered collection of unique values.
+When to use:
+You don’t care about order.
+You want to avoid duplicates automatically.
+
+variable "allowed_ports" {
+  type = set(number)
+}
+
+allowed_ports = [22, 80, 443, 443]  # Terraform will keep only 22, 80, 443
+
+
+
+
 
 
 
