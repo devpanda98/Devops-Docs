@@ -22,10 +22,10 @@ like resource        aws_instance              my_new_vm     {  #here in aws_ins
 }
 
 
-first do terraform init -- to initialize terraform in the folder 
+first do terraform init -- to initialize terraform in the folder / it install the plugins that are there in the file
 terraform validate --  to validate the .tf file that is correct or not 
-terraform plan -- to check the output / like what you will get after executing the tf file /like a dry run 
-terraform apply -- to get the final run output 
+terraform plan -- to check the output / like what you will get after executing the tf file /like a dry run /it creates a execution generated 
+terraform apply -- to get the final run output / execution is done , creates a blueprint of that execution and state is maintained 
 terraform destroy -- to destroy the infra that you created
 terraform apply -auto-approve  --  auto-approve  while applying 
 
@@ -280,8 +280,19 @@ variable "allowed_ports" {
 allowed_ports = [22, 80, 443, 443]  # Terraform will keep only 22, 80, 443
 
 
+##Terraform State::
+-------------------------------------------------------------
+commands: 
+terraform state list → list all resources in state.
+terraform state show <resource> → show details of one resource.
+terraform state mv <from> <to> → move resource within state (e.g., rename).
+terraform state rm <resource> → remove from state without destroying in cloud.
 
-
-
-
+##Purpose: Stores Terraform’s view of the infrastructure (acts as source of truth).
+Contents: JSON file with resource details (IDs, attributes, metadata).
+Usage: Terraform compares .tf (desired) with .tfstate (current) to decide what to add/change/delete.
+Key points:
+Don’t edit manually.
+If lost → Terraform may recreate or orphan resources.
+Keep it safe (use remote state for teams).
 
