@@ -1,0 +1,277 @@
+Kubernetes Notes
+1. Pods in Kubernetes
+
+Pod: The smallest deployable unit in Kubernetes.
+Defined using YAML manifest files.
+You can check supported API versions with:
+kubectl explain pod
+
+2. YAML Syntax (Key Concepts)
+
+a) spec.selector.matchLabels
+Defines which Pods a Deployment should manage.
+Works like a filter: “Select Pods with these labels.”
+b) spec.template.metadata.labels
+Labels that are actually applied to Pods when created.
+Defines what labels each Pod will have.
+
+3. Deployments & Replica Management
+
+a) ReplicationController
+Ensures a specified number of Pods are always running.
+Uses:
+Selector → to match and manage Pods by labels.
+template.metadata.labels → applies labels to new Pods.
+
+b) Deployment
+Manages ReplicaSets (which in turn manage Pods).
+Provides features like updates, rollbacks, and scaling.
+
+4. Updating a Deployment
+
+a) Rolling Updates (Default Strategy)
+Ensures zero downtime updates.
+Process:
+Kubernetes creates new Pods with the updated spec (e.g., new image).
+Waits until new Pods are Ready.
+Gradually deletes old Pods while keeping the desired number available.
+
+b) ReplicaSet During Updates
+When Deployment is updated:
+A new ReplicaSet is created with the updated Pod spec.
+Kubernetes slowly scales up the new ReplicaSet while scaling down the old one.
+For each new Pod that becomes Ready, one old Pod is deleted.
+
+Pod in K8s
+
+kubectl explain pod → use this command to get the API version that your K8s supports.
+
+YAML Syntax
+spec.selector.matchLabels:
+
+Tells the Deployment which Pods it should manage.
+Like saying: “Look for Pods with these labels and treat them as part of this Deployment.”
+
+spec.template.metadata.labels:
+Labels applied to the Pods when they are created.
+Defines what labels each Pod will have.
+
+Deployments / Replication Controller / Replicas
+-------------------------------------------------------
+
+ReplicationController ensures a specified number of Pods are always running.
+It uses selector to manage Pods based on their labels.
+It uses template.metadata.labels to apply labels to new Pods.
+
+Updating a Deployment
+
+When you change the Deployment (for example, updating the container image), Kubernetes handles it smoothly using Rolling Updates.
+Rolling Update Process:
+Kubernetes creates new Pods with the updated spec.
+It waits for the new Pods to become ready.
+It gradually deletes the old Pods while keeping the desired number of Pods available.
+This continues until all old Pods are gone.
+➡️ This process is called a Rolling Update.
+
+Summary of Rollout Commands
+----------------------
+Command	Purpose
+kubectl apply -f deployment.yaml	Apply or update Deployment
+kubectl rollout status deployment my-app	Check rollout progress
+kubectl rollout history deployment my-app	View rollout history
+kubectl rollout undo deployment my-app	Rollback to previous version
+kubectl rollout undo deployment my-app --to-revision=2	Rollback to a specific version
+kubectl rollout pause deployment my-app	Pause rollout process
+kubectl rollout resume deployment my-app	Resume rollout process
+kubectl describe deployment my-app	View rollout details
+kubectl rollout restart deployment my-app	Restart the Pods under deployment
+
+Service Types
+=------------------
+
+ClusterIP
+NodePort
+LoadBalancer
+ExternalName
+
+# Example ExternalName service:
+
+spec:
+  selector:
+    app: nginx-app
+  type: ExternalName
+  externalName: myapp.com
+  ports:
+  - port: 80
+    targetPort: 80 
+
+# Namespace
+
+If a Pod is in a Namespace and another Pod is in a different Namespace, to connect them you must use the other Pod’s FQDN.
+
+FQDN syntax:
+
+**  service_name.namespace.svc.cluster.local
+
+Example:
+demo-service.demo_space.svc.cluster.local
+
+##Sidecar vs Init Containers
+---------------------------------
+*Init Containers
+
+If you add an init container in the Deployment, first the init container will start, then the main container will start.
+Example:
+
+initContainers:
+- image: busybox:1.35
+  imagePullPolicy: Never
+  command: ['sh', '-c']
+  args: ['echo Init setup']
+
+
+✔ Commands in args are executed inside the init container’s environment.
+✔ To share data with the main container, use shared volumes like emptyDir.
+✔ Once the init container finishes, the main container starts with whatever setup the init container performed.
+
+Sidecar Containers
+-----------------------------------------------
+Run alongside the main container in the same Pod.
+
+Share:
+Network (same localhost).
+Storage volumes (share data).
+
+###Typical use cases:
+Logging/monitoring agents.
+Proxy containers (e.g., Envoy sidecar in Istio).
+Updating or syncing configuration files.
+
+DaemonSets
+--------------------
+Runs one Pod per Node.
+Automatic behavior:
+When new nodes are added, DaemonSet automatically adds the Pod.
+
+###Use cases:
+Monitoring agents (e.g., Prometheus Node Exporter).
+Logging agents (e.g., Fluentd, Filebeat).
+Network plugins (e.g., CNI plugins).
+Security or backup tools.
+
+CronJobs
+Example:
+* * * * * echo "Hello World" >> /home/yourusername/hello.log
+
+Cron Syntax (5 fields):
+Field	Meaning	Values
+Minute	0–59	*
+Hour	0–23	*
+Day of Month	1–31	*
+Month	1–12	*
+Day of Week	0–6 (Sun=0)	*
+Examples:
+
+Run at 10 PM every Tuesday:
+0 22 * * 2 echo "Hello World" >> /home/yourusername/hello.log
+Run every 5 minutes:
+*/5 * * * * echo "Hello World" >> /home/yourusername/hello.log
+
+Where to use a CronJob:
+--------------------------
+✅ Scheduled recurring tasks:
+Backing up data every night at 2 AM.
+Cleaning temporary files weekly.
+Syncing data between services regularly.
+✅ Tasks that repeat and don’t need manual intervention.
+
+Jobs
+------------------
+Where to use a Job:
+
+✅ One-time tasks:
+Database migration before deployment.
+Processing a large batch of files once.
+Sending a notification after an event.
+✅ Tasks that must complete and where you need to track success/failure.  
+
+** Static Pods
+------------------
+A Static Pod is managed directly by the kubelet on a node (not by the API server).
+
+***  Commonly used for control plane components:
+
+/etc/kubernetes/manifests/kube-apiserver.yaml
+/etc/kubernetes/manifests/kube-scheduler.yaml
+/etc/kubernetes/manifests/kube-controller-manager.yaml
+/etc/kubernetes/manifests/etcd.yaml
+
+If you edit one of these files, kubelet automatically applies changes and restarts the Pod.
+
+✅ Summary:
+
+✔ Scheduler, API server, controller manager, etcd → run as static pods.
+✔ Managed by kubelet, not the API server.
+✔ Always kept running on control plane nodes.
+✔ Critical for cluster functionality.
+
+** Manual Scheduling
+You explicitly tell Kubernetes where to run a Pod.
+Options:
+nodeName → schedule Pod to a specific node.
+nodeSelector / affinity → more flexible placement rules.
+
+** Useful when:
+Strict control of Pod placement is required.
+Specific hardware/resources needed.
+Even if the scheduler is down, Pods can still be scheduled (since node placement is already defined).
+
+Labels and Selectors
+---------------------------------------
+Selector = which Pods to manage.
+Pod template labels = labels given to new Pods.
+Must match → otherwise Deployment won’t recognize its Pods.
+
+Taints & Tolerations
+--------------------------------------------
+1️⃣ Taints (on Nodes)
+
+Prevent Pods from being scheduled on a node unless tolerated.
+** Syntax:
+key=value:effect
+
+** Effects:
+
+NoSchedule → Pod won’t be scheduled.
+PreferNoSchedule → Try to avoid scheduling.
+NoExecute → Evict existing Pods + block new ones.
+Example (taint a node):
+
+##   kubectl taint node node1 key=value:NoSchedule
+
+➡️ Node node1 will not accept Pods unless they tolerate this taint.
+2️⃣ Tolerations (on Pods)
+Allow a Pod to run on nodes with matching taints.
+Example:
+
+tolerations:
+- key: "key"
+  operator: "Equal"
+  value: "value"
+  effect: "NoSchedule"
+
+➡️ Pod can now be scheduled on nodes tainted with key=value:NoSchedule.
+
+### NodeSelectors
+-----------
+You can add labels to nodes:
+kubectl label node node_name key=value
+Then in the Pod spec:
+
+nodeSelector: 
+  key: "value"
+
+➡️ Pod will only be scheduled on nodes with the matching label.
+NodeSelectors vs Taints/Tolerations
+NodeSelectors → “Only run me on specific labeled nodes.”
+Taints & Tolerations → “Don’t run anything here unless it tolerates my taint.”
