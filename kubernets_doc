@@ -240,12 +240,11 @@ Prevent Pods from being scheduled on a node unless tolerated.
 ** Syntax:
 key=value:effect
 
-** Effects:
+####Effects of taints:
 
-NoSchedule → Pod won’t be scheduled.
-PreferNoSchedule → Try to avoid scheduling.
-NoExecute → Evict existing Pods + block new ones.
-Example (taint a node):
+NoSchedule → Pods without a matching toleration will not be scheduled on this node.
+PreferNoSchedule → Scheduler will try to avoid placing pods on this node, but it’s not guaranteed.
+NoExecute → Pods without a matching toleration will be evicted if already running, and new ones won’t be scheduled.
 
 ##   kubectl taint node node1 key=value:NoSchedule
 
@@ -274,4 +273,21 @@ nodeSelector:
 ➡️ Pod will only be scheduled on nodes with the matching label.
 NodeSelectors vs Taints/Tolerations
 NodeSelectors → “Only run me on specific labeled nodes.”
-Taints & Tolerations → “Don’t run anything here unless it tolerates my taint.”
+Taints & Tolerations → “Don’t run anything here unless it tolerates my taint.” 
+
+Kubernetes Node Labels, Affinity & Tolerations
+Node Labels → Key/value pairs attached to nodes (e.g., disktype=ssd, env=prod). Used to group and identify nodes.
+
+Add: kubectl label nodes <node-name> key=value
+Remove: kubectl label nodes <node-name> key-
+
+Node Affinity → Pod-level rules that attract pods to specific nodes based on labels.
+Required → pod runs only on matching nodes.
+Preferred → pod tries to run on matching nodes but can fall back.
+Taints & Tolerations → Node-level rules that repel pods.
+Taints block scheduling unless a pod has a matching toleration.
+
+👉 Difference:
+
+Affinity = pod choosing nodes
+Tolerations = nodes restricting pods
