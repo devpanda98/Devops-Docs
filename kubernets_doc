@@ -291,3 +291,54 @@ Taints block scheduling unless a pod has a matching toleration.
 
 Affinity = pod choosing nodes
 Tolerations = nodes restricting pods
+----
+## REQUESTS AND LIMITS
+
+1. Requests
+
+This is the minimum amount of CPU and memory the container needs to start and run properly.
+Kubernetes uses this to decide where to place (schedule) the pod.
+🟢 Think: “Give me at least this much.”
+
+2. Limits
+
+This is the maximum amount of CPU and memory the container can use.
+
+If the container tries to use more than this:
+For CPU: it’s slowed down (throttled).
+For Memory: it can be killed (OOMKilled).
+🔴 Think: “Don’t let me use more than this.”
+
+🧩 Example
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+-----------------------
+### HPA & VPA
+
+Scaling Types:
+1 Horizontal autoscaler (also known as scale in/out)
+    HPA changes the number of pods based on load.
+    we do it on 2 different aspect first is workloads(like on pods{HPA}) and second is on infra(on nodes{CLUSTER autoscaler})
+    
+ >>>  kubectl autoscale deployment myapp --cpu-percent=70 --min=3 --max=10
+  ✅ When to use HPA:
+  You want to handle varying traffic.
+  Your app can run multiple replicas easily (stateless apps).
+
+2 Vertical autoscaler (also known as scale up/down)
+   VPA changes the resources (CPU & memory) given to each pod — not the number of pods.
+  📈 If your app needs more power → adds CPU/memory
+  📉 If it needs less → reduces CPU/memory
+   we do it on 2 different aspect first is workloads(like on pods{HPA}) and second is on infra(on nodes{CLUSTER autoscaler})
+
+  ✅ When to use VPA:
+    
+    You have a few pods that must stay single (like a database).
+    Your app is stateful or not easily scaled horizontally.
+    You want to optimize resource usage automatically.
