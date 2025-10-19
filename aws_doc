@@ -1,0 +1,63 @@
+### EC2(elastic cloud compute) instance:
+------------
+whenever aws provides you a service that is elastic in nature means it can be scaled up and scaled down you will see the service name with a prefix of elastic .
+types of ec2 instances :
+
+| **Type**                  | **Optimized for**                 | **Example use**                                       |
+| ------------------------- | --------------------------------- | ----------------------------------------------------- |
+| **General Purpose**       | Balanced CPU, memory, and storage | Websites, apps, small databases                       |
+| **Compute Optimized**     | Lots of processing power (CPU)    | Gaming servers, video processing, scientific modeling |
+| **Memory Optimized**      | Large memory (RAM)                | Big databases, in-memory caching, analytics           |
+| **Storage Optimized**     | Fast and large storage (disks)    | Big data, file systems, data warehouses               |
+| **Accelerated Computing** | Special hardware (GPU or FPGA)    | Machine learning, 3D rendering, AI, simulations       |
+
+🌐 VPC (VIRTUAL PRIVATE CLOUD):
+
+A VPC (Virtual Private Cloud) is like your own private section of the AWS cloud — where you can safely run your servers (EC2 instances), databases, and apps.
+Your VPC is your own fenced neighborhood inside that city — private, secure, and only you can decide who enters or leaves.
+
+🏠 Example
+Let’s say you want to host a small website.
+You create a VPC — your private network in AWS.
+Inside the VPC, you make:
+
+a Public Subnet → where your web server (EC2) lives so people can visit your website.
+a Private Subnet → where your database lives so the public can’t access it directly.
+You set up Security Groups and Firewalls (rules) to control who can talk to what.
+You can connect your home or office network to it using a VPN if needed.
+
+
+| Component                  | Description                                            | Example / Analogy                     |
+| -------------------------- | ------------------------------------------------------ | ------------------------------------- |
+| **VPC**                    | Main private network container                         | Your private neighborhood             |
+| **Subnet**                 | Smaller section inside VPC (can be public or private)  | A street in your neighborhood         |
+| **Internet Gateway (IGW)** | Connects VPC to the Internet                           | The main gate to the outside world    |
+| **Route Table**            | Tells each subnet where to send traffic                | The road map                          |
+| **Security Group**         | Firewall at instance level                             | Guard at your house gate              |
+| **Network ACL (NACL)**     | Firewall at subnet level                               | Guard at the neighborhood gate        |
+| **NAT Gateway**            | Lets private subnets access internet **outbound only** | One-way gate for updates/downloads    |
+| **Load Balancer (LB)**     | Distributes traffic across servers                     | Reception desk that forwards visitors |
+
+
+| Type               | Internet Access                  | Route Table Entry                 | Typical Use                 |
+| ------------------ | -------------------------------- | --------------------------------- | --------------------------- |
+| **Public Subnet**  | ✅ Direct Internet access via IGW | `0.0.0.0/0 → Internet Gateway`    | Load Balancers, Web Servers |
+| **Private Subnet** | ❌ No direct Internet access      | `0.0.0.0/0 → NAT Gateway` or none | App Servers, Databases      |
+
+🚀 Traffic Flow Example
+
+User → Website in VPC (Project 1)
+User types URL → DNS resolves to LB’s public IP.
+Request goes through the Internet → Internet Gateway (IGW).
+IGW passes traffic to Public Subnet (where Load Balancer lives).
+LB forwards request to Private Subnet (App Server).
+App Server (if needed) talks to Database in another private subnet.
+Response goes back → Private Subnet → Public Subnet (LB) → IGW → Internet → User.
+
+
+***VPC with servers in private subnets and NAT
+https://docs.aws.amazon.com/vpc/latest/userguide/vpc-example-private-subnets-nat.html
+
+
+
+
