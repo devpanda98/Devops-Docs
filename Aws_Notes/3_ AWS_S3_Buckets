@@ -104,4 +104,32 @@ Action	Command	Example:
 | **7. S3 Glacier Deep Archive**                             | Cheapest S3 storage — retrieval takes **12+ hours**.                                       | For **data you almost never access**, like compliance or old records.              | 💰 (cheapest)                                  |
 | **8. S3 Outposts**                                         | Stores data on-premises using AWS Outposts hardware.                                       | For **local data residency** or when you need S3 features inside your data center. | 💲💲💲 (varies)                                |
 
+## Requestor Pays:
+-----------------
 
+Normally, the bucket owner pays for all data transfer and access costs.
+But with Requestor Pays, the person who downloads (requests) the data pays the cost instead.
+s3 >> bucket >> properties >> scroll down to Requestor pay and enable
+
+📦 Example:
+You share a public S3 bucket full of large files (like maps or research data).
+Lots of people download them — and you (the owner) get charged for every download.
+To avoid that, you turn on Requestor Pays.
+Now, anyone who downloads files must use their own AWS account, and they get billed for the data they access.
+
+🧱 Key points:
+Only works if the requestor has an AWS account.
+The bucket owner still pays for storage, but not for data access or transfer.
+The requestor must include --request-payer requester in their CLI or API calls.
+🧰 Example AWS CLI command:   aws s3 ls s3://my-requestor-pays-bucket --request-payer requester
+
+🔑 S3 object tagging :
+--------------------
+you can tag the object for identification .
+if you want to access , move , delete , or do something on a group of objects you  can give same tags to all and use that tags .
+
+🛡️ S3 Bucket Policy :
+---------------------------
+
+✅ make S3 public : 
+------------------
