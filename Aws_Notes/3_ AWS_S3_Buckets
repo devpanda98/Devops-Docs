@@ -44,3 +44,64 @@ Extra tip: You can access files in a bucket from anywhere over the internet if y
 5. Regular Audits and Certifications
      AWS data centers meet strict security and compliance standards (like ISO 27001, SOC 1/2/3, etc.).
      They’re regularly audited to ensure the safety and durability of your data.
+
+Create S3 bucket:
+
+choose region >> give bucket name (unique) >> object ownership >> Block Public Access settings for this bucket >> Bucket Versioning (Disabled/Enabled) >> Tag (jst a unique identifier) >> Default encryption
+>> Bucket Key >> create bucket
+
+👇
+
+📋 Basic S3 Commands:
+
+| Action                               | Command                                 | Example                              |
+| ------------------------------------ | --------------------------------------- | ------------------------------------ |
+| 🪣 List all buckets                  | `aws s3 ls`                             | —                                    |
+| 📂 List files in a bucket            | `aws s3 ls s3://my-bucket`              | `aws s3 ls s3://project-data`        |
+| 🆕 Create a new bucket               | `aws s3 mb s3://my-bucket-name`         | `aws s3 mb s3://new-demo-bucket`     |
+| 🗑️ Delete a bucket                  | `aws s3 rb s3://my-bucket-name`         | `aws s3 rb s3://old-bucket`          |
+| 🗑️ Delete a bucket (with all files) | `aws s3 rb s3://my-bucket-name --force` | `aws s3 rb s3://test-bucket --force` |
+
+📦 Working with Objects (Files):
+
+Action	Command	Example: 
+
+| Action             | Command                                    | Example                                    |
+| ------------------ | ------------------------------------------ | ------------------------------------------ |
+| ⬆️ Upload a file   | `aws s3 cp file.txt s3://my-bucket/`       | `aws s3 cp report.pdf s3://docs-bucket/`   |
+| ⬇️ Download a file | `aws s3 cp s3://my-bucket/file.txt .`      | `aws s3 cp s3://docs-bucket/report.pdf .`  |
+| 🔁 Sync folders    | `aws s3 sync local-folder s3://my-bucket/` | `aws s3 sync ./backup s3://backup-bucket/` |
+| ❌ Delete a file    | `aws s3 rm s3://my-bucket/file.txt`        | `aws s3 rm s3://project/file.txt`          |
+
+⚙️ Advanced / API-level Commands: 
+
+| Action                        | Command                                                                                        | Example |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- | ------- |
+| 📜 List buckets (JSON format) | `aws s3api list-buckets`                                                                       | —       |
+| 📄 Get bucket info            | `aws s3api get-bucket-location --bucket my-bucket`                                             | —       |
+| 🔐 Set bucket policy          | `aws s3api put-bucket-policy --bucket my-bucket --policy file://policy.json`                   | —       |
+| 🔒 Enable bucket versioning   | `aws s3api put-bucket-versioning --bucket my-bucket --versioning-configuration Status=Enabled` | —       |
+| Purpose                                       | Example Command                                                                                 | Description                         |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 🪣 Create a bucket (with control over region) | `aws s3api create-bucket --bucket my-bucket --region us-east-1`                                 | Lets you specify location & options |
+| 🔐 Manage permissions                         | `aws s3api put-bucket-policy`                                                                   | Add JSON policies to control access |
+| 🧱 Enable versioning                          | `aws s3api put-bucket-versioning --versioning-configuration Status=Enabled`                     | Keeps old versions of files         |
+| 🧩 Configure encryption                       | `aws s3api put-bucket-encryption --bucket my-bucket --server-side-encryption-configuration ...` | Protects data at rest               |
+| 📜 List objects (programmatic access)         | `aws s3api list-objects-v2 --bucket my-bucket`                                                  | For scripts or integrations         |
+| 📈 Enable logging or replication              | `aws s3api put-bucket-logging` / `put-bucket-replication`                                       | For advanced data management        |
+
+
+🗂️ Amazon S3 Storage Classes (Explained Simply):  
+
+| Storage Class                                              | Description                                                                                | When to Use                                                                        | Cost 💰                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **1. S3 Standard**                                         | Default storage class — data is stored across multiple Availability Zones (AZs).           | For data you access **frequently** (websites, apps, daily files).                  | 💲💲 (Regular price)                           |
+| **2. S3 Intelligent-Tiering**                              | Automatically moves data between “frequent” and “infrequent” access tiers based on usage.  | When you **don’t know** how often data will be accessed.                           | 💲💲 (slightly higher but auto-optimizes cost) |
+| **3. S3 Standard-Infrequent Access (Standard-IA)**         | Same durability as Standard, but cheaper for rarely accessed data. Retrieval costs extra.  | For **backups, logs, or old project files** you don’t use often.                   | 💲 (cheaper storage, cost per retrieval)       |
+| **4. S3 One Zone-Infrequent Access (One Zone-IA)**         | Stores data in **only one Availability Zone** (not multi-AZ).                              | For **non-critical data** you can easily recreate if lost.                         | 💲 (even cheaper)                              |
+| **5. S3 Glacier Instant Retrieval**                        | Very low-cost storage for data that’s **rarely accessed** but needs **instant retrieval**. | For **archives or backups** you may occasionally need.                             | 💲 (cheap storage, small retrieval cost)       |
+| **6. S3 Glacier Flexible Retrieval (formerly S3 Glacier)** | Low-cost archival storage. Data retrieval takes **minutes to hours**.                      | For **long-term backups** (e.g., yearly archives).                                 | 💲 (very cheap)                                |
+| **7. S3 Glacier Deep Archive**                             | Cheapest S3 storage — retrieval takes **12+ hours**.                                       | For **data you almost never access**, like compliance or old records.              | 💰 (cheapest)                                  |
+| **8. S3 Outposts**                                         | Stores data on-premises using AWS Outposts hardware.                                       | For **local data residency** or when you need S3 features inside your data center. | 💲💲💲 (varies)                                |
+
+
