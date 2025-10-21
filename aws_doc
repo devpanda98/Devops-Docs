@@ -187,7 +187,27 @@ in NACL you added a inbound rule where you go to >> edit inbound rule >> remove 
 
 🧠  while creating and adding the inbound and out bound rules you have to carefully check the rule numbers ,thr NACL rules works in ascending number meaning if you add a rule deny port 8000 and give the rule number 2 and add a rule allow all traffic and give that rule number 1 it will apply the first rule only and the port is still accessable .
 
+⚙️ How NACL Rule Numbers Work: 
 
+            In AWS Network ACLs (NACLs), rule numbers determine the order in which rules are evaluated.
+            Rules are processed in ascending order — starting from the lowest number.
+            As soon as one rule matches, AWS stops evaluating further rules.
+            The action (ALLOW or DENY) of that first match is applied to the traffic.
 
+🧩 Example Scenario
 
+You have these two outbound rules:
+
+Rule #	Type	Port	Action	Description
+1	All traffic	All	ALLOW	Allow everything
+2	Custom TCP	8000	DENY	Deny port 8000
+
+When traffic tries to leave the subnet on port 8000, AWS checks the rules from smallest to largest number:
+
+Rule #1 → "Allow all traffic" → ✅ Matched!
+AWS stops here and allows the traffic.
+
+Rule #2 → “Deny port 8000” → ❌ Never reached.
+
+So even though you tried to block port 8000, it remains accessible, because the allow rule (lower number) takes priority.
 
