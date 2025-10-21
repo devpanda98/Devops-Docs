@@ -61,6 +61,131 @@ https://docs.aws.amazon.com/vpc/latest/userguide/vpc-example-private-subnets-nat
 ### AWS Security Group and NACL ###
 -----------------
 
+In AWS, Security Groups (SGs) act as virtual firewalls that control inbound (ingress) and outbound (egress) traffic to and from your EC2 instances or other AWS resources (like RDS, Lambda ENIs, etc.).
+
+Inbound Rules (Ingress): These control incoming connections to your resource.
+| Purpose             | Protocol | Port | Source                           |
+| ------------------- | -------- | ---- | -------------------------------- |
+| SSH access          | TCP      | 22   | Your IP (e.g., `203.0.113.5/32`) |
+| HTTP web traffic    | TCP      | 80   | Anywhere (`0.0.0.0/0`)           |
+| HTTPS web traffic   | TCP      | 443  | Anywhere (`0.0.0.0/0`)           |
+| Database connection | TCP      | 3306 | Web server SG ID                 |
+
+Outbound Rules (Egress) : These control outgoing connections from your resource.
+By default, AWS allows all outbound traffic, meaning your instance can reach the internet or other AWS services.
+You can restrict outbound traffic for tighter control.
+
+| Purpose               | Protocol | Port    | Destination |
+| --------------------- | -------- | ------- | ----------- |
+| Allow all traffic     | All      | All     | 0.0.0.0/0   |
+| Allow only HTTP/HTTPS | TCP      | 80, 443 | 0.0.0.0/0   |
+| Allow DB connection   | TCP      | 3306    | Database SG |
+
+## NACL (NETWORK ACCESS CONTROL LIST ):
+----
+A Network Access Control List (NACL) is a stateless firewall that controls inbound and outbound traffic at the subnet level in a VPC.
+It acts as an additional layer of security, complementing Security Groups (which work at the instance level).
+
+Stateless Example — Why Return Traffic Must Be Allowed
+
+| Feature              | Description                                                           |
+| -------------------- | --------------------------------------------------------------------- |
+| **Scope**            | Works at the **subnet** level                                         |
+| **Stateless**        | Return traffic must be **explicitly allowed**                         |
+| **Rule Order**       | Evaluated from **lowest to highest rule number**; first match applies |
+| **Default Behavior** | Default NACL allows all traffic; custom NACL denies all by default    |
+| **Rules Type**       | Separate **Inbound** and **Outbound** rules                           |
+| **Action**           | Each rule either **allows** or **denies** traffic                     |
+
+**  Scenario:
+A web server in a public subnet receives HTTP requests from users on the internet.
+Traffic Flow:
+      Inbound: Client → Server
+      Client sends traffic on port 80 (HTTP)
+      must allow inbound port 80
+      Outbound: Server → Client
+      Server responds using ephemeral ports (1024–65535)
+      NACL must allow outbound 1024–65535
+
+*Inbound NACL Rule:
+Rule #	Protocol	Port	Source	Action
+100	TCP	80	0.0.0.0/0	ALLOW
+
+* Outbound NACL Rule:
+Rule #	Protocol	Port	Destination	Action
+100	TCP	1024–65535	0.0.0.0/0	ALLOW
+
+✅ This allows full two-way communication for web traffic.
+❌ Without the outbound rule, the response traffic would be blocked, because NACLs are stateless.
+
+🔹 Quick Comparison: NACL vs Security Group::
+
+| Feature        | NACL            | Security Group               |
+| -------------- | --------------- | ---------------------------- |
+| Level          | Subnet          | Instance                     |
+| Stateful       | ❌ No            | ✅ Yes                        |
+| Order Matters  | ✅ Yes           | ❌ No                         |
+| Default        | Allow all       | Deny inbound, allow outbound |
+| Return Traffic | Must be allowed | Automatically allowed        |
+
+
+### how o create VPC ,SG AND NACL :
+
+search vpc in aws console >>  Resources to create (vpc and more )
+🢃
+Name tag auto-generation (give name)
+🢃
+IPv4 CIDR block (give CIDR range like 10.0.0.0/16) {you can change the range according to your need}
+🢃
+IPv6 CIDR block
+🢃
+Number of Availability Zones (AZs) {choose the number like 1 or 2 or 3 the zones that are there in region }
+🢃
+Number of public subnets like 2
+🢃
+Number of private subnets like 2 ror 4 
+🢃
+VPC endpoints (none / s2 Gateway)
+🢃
+DNS options:
+      Info
+      Enable DNS hostnames
+      Enable DNS resolution
+🢃
+Create VPC 
+
+
+after create the vpc this will happen ::
+🧩 What “VPC and More” automatically Creates for You:
+
+| Component                  | Description                                                                                                                        |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **VPC**                    | A new Virtual Private Cloud with the CIDR block you specify (e.g., `10.0.0.0/16`)                                                  |
+| **Subnets**                | Usually **2 public** and **2 private** subnets across **2 Availability Zones that is there in the region u are choosing ** (for high availability)                             |
+| **Route Tables**           | - One **public route table** (with a route to the Internet Gateway)<br> - One **private route table** (for internal traffic / NAT) |
+| **Internet Gateway (IGW)** | Attached to the VPC to enable public internet access for public subnets                                                            |
+| **NAT Gateway**            | Placed in a **public subnet** to allow **private subnets** to access the internet **outbound only** (for updates, etc.)            |
+| **Elastic IP (EIP)**       | Assigned to the NAT Gateway                                                                                                        |
+| **Security Group**         | A default SG to control instance-level access                                                                                      |
+| **Network ACLs**           | Default NACLs associated with each subnet                                                                                          |
+| **DNS settings**           | VPC-level DNS resolution and hostname options (enabled by default)                                                                 |
+
+🧩  how to connect the vpc to the ec2 insance :
+
+while creating the ec2 instance after choosing the key pairs you will have to set the network settings you can choose the vpc there that you have created,
+
+So when you create vpc the NACL is automatically created , you can find that under vpc dashboard >> security >> network ACLs >> 
+there you can see the inbound rules , outbound rules and the associate subnets there , by default all the traffic is allown in inbound and outbound rules.
+
+example :
+for example you created a VPC with 2 subnets , the NACL is creates with that vpc , you connect the vpc with the ec2 instance .
+then you have to create a securoty group with the instance , lets say you want to access a simple http server on port 8000 so you have to allow traffic in ec2 instance security group port 8000 and ip range you have to give and you can browse and access.
+
+But lets say another guy creayed the ec2 instabce and he allowed the traffic on port 8000 , but yiu are the devops guy and you dont want to allow that traffuc to you application for some reason , you cant watch all the ec2 unstances right so you did one thing you added the inbound and outbound rules at the subnet level in NACL.
+
+in NACL you added a inbound rule where you go to >> edit inbound rule >> remove the default all traffic or you can do one thing add a new rule give a number to that rule (lets say rule number is 100 ##imp) and give the all traffuc ruke 200.,in the 100 rule you deny the port 8000 and saved . you can see that even of you allowed the port in security group the request cant go to the subnet and to the application.
+
+🧠  while creating and adding the inbound and out bound rules you have to carefully check the rule numbers ,thr NACL rules works in ascending number meaning if you add a rule deny port 8000 and give the rule number 2 and add a rule allow all traffic and give that rule number 1 it will apply the first rule only and the port is still accessable .
 
 
 
