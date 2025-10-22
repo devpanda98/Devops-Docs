@@ -191,5 +191,42 @@ Securing S3 Bucket :
       4. Bucket Versioning :
               S3 → your bucket → Properties → Bucket Versioning → Edit → Enable Versioning → Save changes.
       5. Bucket Replication and Batch job:
-                
+              ✅ How to Create a Batch Job (Console)
+              Go to Amazon S3 Console → Batch Operations
+              Choose a manifest (a CSV or JSON list of S3 object keys to process)
+              Choose an operation (e.g., copy, delete, tag, invoke Lambda)
+              Specify IAM role and reporting bucket
+              Review and run the job
+
+🧭 S3 BUCKET CLOUDFRONT DISTRIBUTION:
+----------------------------
+
+🌩️ What Is Amazon CloudFront?
+
+CloudFront is Amazon’s Content Delivery Network (CDN).
+It helps deliver your content (like images, videos, or website files) faster and more securely to users all over the world.
+Instead of every user fetching files directly from your S3 bucket (one region), CloudFront stores cached copies of your files at edge locations (data centers) close to users.
+
+🧱 How It Works (Simple Steps)
+
+You have a S3 bucket with your files → for example, my-website-bucket.
+You create a CloudFront Distribution and connect it to that S3 bucket as the origin.
+When someone visits your site (via CloudFront URL):
+CloudFront checks if it already has the file cached at the nearest location.
+If not, it fetches it once from S3, stores it temporarily, and serves it to users.
+Next time, nearby users get the file instantly from the cache.
+
+🧩 How to Set It Up (in Console):
+
+Go to S3 → Create bucket → Upload your website files
+Go to CloudFront → Create Distribution
+For Origin Domain, choose your S3 bucket
+*Enable:
+Viewer protocol policy: Redirect HTTP to HTTPS
+Cache policy: Default or optimized
+Origin Access Control (OAC): Enable (recommended)
+Click Create Distribution
+After setup, you’ll get a CloudFront domain name, like:
+d1234abcd.cloudfront.net
+(Optional) Use Route 53 to map your custom domain (e.g., www.mywebsite.com) to the CloudFront URL.
 
