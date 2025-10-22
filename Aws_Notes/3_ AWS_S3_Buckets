@@ -133,3 +133,63 @@ if you want to access , move , delete , or do something on a group of objects yo
 
 ✅ make S3 public : 
 ------------------
+
+## Pre signed URL :
+---------------
+Securing S3 Bucket :
+--------------------
+1. AWS SSE(server side encryption) S3-Encryption:
+      how to enable >> go to S3 bucket >> properties >> Default Encryption & edit>> choose the option from encryption type
+         Here’s what happens step-by-step when you use SSE-S3:
+                     You upload an object to your S3 bucket.
+                     Before S3 writes the object to disk, it automatically encrypts it using AES-256, a strong industry-standard encryption algorithm.
+                     S3 manages the encryption keys internally — securely rotating, storing, and controlling them.
+                     When you download the object, S3 automatically decrypts it for authorized users
+2. AWS S3 SSE-KMS: 
+      🔐 What Is SSE-KMS (Server-Side Encryption with AWS KMS Keys)?
+      SSE-KMS encrypts your Amazon S3 data at rest, but instead of S3 managing the keys internally (as with SSE-S3), it uses AWS KMS (Key Management Service) to manage and protect the encryption keys.
+      
+      This means:
+      Every object is encrypted with a unique data key.
+      That data key itself is encrypted by a KMS Customer Master Key (CMK).
+      You can control, audit, and rotate that CMK using KMS.
+      
+      ⚙️ How It Works (Step by Step)
+      
+      You upload an object to your S3 bucket.
+      S3 asks KMS for a data encryption key for your CMK.
+      The object is encrypted using AES-256 with that data key.
+      The data key is then encrypted (wrapped) by your CMK and stored alongside the object metadata.
+      When you (or an authorized user) download the object:
+      S3 calls KMS to decrypt the data key.
+      The object is then decrypted automatically and returned.
+
+       🧰 How to Enable SSE-KMS
+       1. Via the S3 Console
+       Go to Bucket → Properties → Default Encryption.
+       Choose AWS KMS key (SSE-KMS).
+       Select an AWS-managed key or your own CMK.
+      3. In Transit Encryption:
+              Encryption in transit means that your data is protected while being transmitted — from your device, application, or another AWS service to S3 (and back).
+              Amazon S3 achieves this using SSL/TLS (HTTPS) — the same technology that secures websites.
+              So when you see a request like:
+              https://my-bucket.s3.amazonaws.com/myfile.txt
+              …it’s transmitted securely using TLS encryption.
+              🚀 How It Works
+              You (or your app) send data to S3 using HTTPS.
+              TLS encrypts the connection, so anyone intercepting the traffic sees only scrambled data.
+              Once the data reaches S3, server-side encryption (SSE) can then protect it at rest (if enabled).
+              
+              → In-transit encryption = HTTPS
+              → At-rest encryption = SSE-S3 / SSE-KMS / SSE-C
+
+      how to enable:     S3 Console → Your Bucket → Permissions → Bucket Policy → Edit
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+      4. Bucket Versioning :
+              S3 → your bucket → Properties → Bucket Versioning → Edit → Enable Versioning → Save changes.
+      5. Bucket Replication and Batch job:
+                
+
