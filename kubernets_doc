@@ -342,3 +342,22 @@ Scaling Types:
     You have a few pods that must stay single (like a database).
     Your app is stateful or not easily scaled horizontally.
     You want to optimize resource usage automatically.
+
+### Health Probes ###
+----------------------
+
+🔒CERTIFICATES IN KUBERNETES 🔒
+-------------------------------
+
+🔑 how ssl/Tls works: 
+----
+* symmetric encyption , asymmetric encryption
+
+When a client sends a GET request over HTTPS:
+The server has a public and private key pair.
+The server sends its public key (inside a certificate) to the client.
+The client verifies the certificate and then generates a random pre-master secret.
+The client encrypts this secret using the server’s public key and sends it.
+The server decrypts it with its private key.
+Both sides now use that secret to create a shared session key for encrypted communication.
+
