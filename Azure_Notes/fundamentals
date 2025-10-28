@@ -1,0 +1,29 @@
+1. Azure Resource : A resource is any manageable item available through Azure.   Examples include: A Virtual Machine (VM),A Storage Account
+
+2. Resource Group (RG)
+A Resource Group is a logical container that holds related Azure resources.
+Think of it like a folder that keeps all the resources for a specific project or application together.
+    🔹 Key points:
+    Every resource in Azure must belong to one (and only one) resource group.
+    You can manage all resources in a group together — for example: Deploy,Update,Monitor,Delete
+    Resource Groups simplify access control (you can assign permissions at the group level).
+    They also define lifecycle boundaries — deleting a resource group deletes all resources inside it.
+
+⚙️ 3. Azure Resource Manager (ARM)
+The Azure Resource Manager is the management layer (the service) that allows you to create, update, and delete resources in Azure.
+Think of it as the engine behind all Azure operations.
+         🔹 Key points:
+          ARM provides a consistent management API for all Azure services.
+          It handles requests whether you use:  The Azure Portal,The Azure CLI,PowerShell,REST APIs,ARM Templates / Bicep
+          ARM enforces access control, tags, and policies.
+          It supports declarative templates (Infrastructure as Code) for deployment.
+
+💻 AZURE Virtual Machine:
+-----
+ssh -i /path/to/your-key.pem azureuser@<Public-IP>   (connect with the vm)
+chmod 600 ~/.ssh/myazurevm.pem   (make sure the permissions are correct cause it will give bad permission error if the file has full permission )
+
+Virtual Network (VNet):
+------
+
+  
