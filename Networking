@@ -40,14 +40,18 @@ Valid subnet alignment                 | Starting octet must be multiple of bloc
 
 🌐 OSI models (open system interconnection)	
 ----------------------------------------------------------
+
+The OSI model (Open Systems Interconnection model) is a conceptual framework that standardizes how different computer systems communicate over a network.
+It divides the communication process into 7 layers, each with specific roles — from sending physical signals to displaying the final data to a user.
+
 OSI HAS 7 LAYERS (APSTNDP in short):
-1 Application (http, https)
-2 presentation (syntax, security)
-3 session (API, Socket)
-4 Transport (TCP)
-5 Networks(packets)
-6 Data link(ethernet)
-7 Physical ()
+1>> layer 7 >>  Application (http, https)
+2>> layer 6 >> presentation (syntax, security & encryption)
+3>> layer 5 >> session (API, Socket)
+4>> layer 4 >> Transport (TCP)
+5>> layer 3 >> Networks(packets)
+6>> layer 2 >> Data link(ethernet)
+7>> layer 1 >> Physical ()
 
 ##  the first 3 layers are called software layers,  the last 3 layers are called the hardware layers and the middle one (transport layer) is it handles the data communication between the software and hardware layers .
 Understand like 
