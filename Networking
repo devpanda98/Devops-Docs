@@ -1,0 +1,62 @@
+Ip address:
+Ip address numbers should be in 0 to 255 number only like 0-255.0-255.0-255.0-255
+
+Representation of IP address in ipv4 format:
+
+0-255   . 0-255  .0-255   . 0-255
+--------|--------|--------|--------
+4 bytes |4 bytes |4 bytes |4 bytes
+8 bit   | 8bit   |8bit    |8bit
+
+🧩 Subnets:
+2 types of subnets: public and private 
+Only difference between these 2 are private subnet doesn’t have access to internet while Public subnet does .
+
+🧱 CIDR range(Classless Inter-Domain Routing): 
+ 
+So lets say you have to give a CIDR range in your vpc 
+Vpc is 172.126.10.0  and you provide CIDR range which gives 172.126.10.0 /27 ips then how you calculate it 
+So you know Ip address has 32 bit , you can calculate from that 
+Like  32 – 27 = 5
+2 to power 5 = 32, total 32 ip I will get like 172.126.10.0  - 172.126.10.31
+The reason: Binary structure of IP addresses
+This is a really insightful question! You're asking why IP address ranges always come in powers of 2, like 2¹, 2², 2⁵, 2¹⁶ — but never 2⁹ or 2¹¹ usable addresses, for example. Let's break it down.
+1.	IP addresses are built in binary.
+o	IPv4 addresses are 32 bits long.
+o	Every bit can have 2 possible values: 0 or 1.
+o	So, the number of possible addresses is always some power of 2.
+
+
+Parameter                              | Formula / Rule                 | Example (172.198.10.0/27)
+--------------------------------   ----|------------------------------ -|------------------------------
+Total IPs                              | 2^(32 - CIDR)                  | 2^(32-27) = 32
+Usable IPs                             | 2^(32 - CIDR) - 2              | 32 - 2 = 30 usable
+Network IP                             | First IP of the block          | 172.198.10.0
+Broadcast IP                           | Network IP + Total IPs - 1     | 172.198.10.0 + 32 - 1 = 172.198.10.31
+Subnet increment / Next subnet start   | Network IP + Total IPs         | 172.198.10.0 + 32 = 172.198.10.32
+Host bits                              | 32 - CIDR                      | 32 - 27 = 5 bits for hosts
+Valid subnet alignment                 | Starting octet must be multiple of block size in that octet | 32 IPs → third octet multiples of 2: 0,2,4,6,8,10…
+
+
+🌐 OSI models (open system interconnection)	
+----------------------------------------------------------
+OSI HAS 7 LAYERS (APSTNDP in short):
+1 Application (http, https)
+2 presentation (syntax, security)
+3 session (API, Socket)
+4 Transport (TCP)
+5 Networks(packets)
+6 Data link(ethernet)
+7 Physical ()
+
+##  the first 3 layers are called software layers,  the last 3 layers are called the hardware layers and the middle one (transport layer) is it handles the data communication between the software and hardware layers .
+Understand like 
+(7) Application – You write the letter
+(6) Presentation – Translate it
+(5) Session – Organize the conversation
+(4) Transport – Deliver in correct order
+(3) Network – Choose best route
+(2) Data Link – Deliver to correct device
+(1) Physical – Wires, Wi-Fi, actual delivery
+
+
