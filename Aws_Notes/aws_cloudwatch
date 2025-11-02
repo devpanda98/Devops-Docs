@@ -1,1 +1,12 @@
 cloud watch
+-----
+AWS CloudWatch is a monitoring and observability service from Amazon Web Services (AWS).
+
+Here’s what it does:
+    Monitoring 
+    realtime  metrics
+    alarms
+    log insights
+    custom metrics
+    cost optimization
+    scaling 
