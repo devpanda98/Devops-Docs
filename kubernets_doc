@@ -424,3 +424,30 @@ If these files or flags are missing, approved CSRs will not result in signed cer
 ✅ Kubernetes Authentication and Authorization :
 ------
 SO when we use any kubectl command to interact with the server somehow it knows what permissions we have and based on that it is showing the results .
+
+Types of authorization:
+-----
+| Type        | Description                       | Common Use                        | Managed By        |
+| ----------- | --------------------------------- | --------------------------------- | ----------------- |
+| **RBAC**    | Role-based access control         | Default choice for most clusters  | Cluster Admin     |
+| **ABAC**    | Attribute-based (JSON policies)   | Legacy/testing                    | Cluster Admin     |
+| **Node**    | Limits node (Kubelet) permissions | Internal system use               | Kubernetes itself |
+| **Webhook** | Delegates to external service     | Custom or enterprise auth systems | External service  |
+
+
+✅ Role Based Access Control Kubernetes: 
+------
+
+✅ service accounts:
+--------------------
+
+
+✅Kubernetes Network Policies :
+----------------
+CNI (container network interface) :
+-----
+It’s a plugin system that tells Kubernetes how Pods get network connectivity —
+how they get IPs, talk to each other, and reach the outside world.
+
+Think of CNI as the network driver for your cl
+
