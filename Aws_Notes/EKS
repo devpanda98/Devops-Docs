@@ -1,1 +1,6 @@
+EKS is a managed control plane not a managed data plane .
 
+🔹 EKS manages the Control Plane — API server, scheduler, etcd, controllers.
+🔹 You manage the Data Plane — worker nodes and workloads.
+
+you can create ec2 instance and add as worker nodes or use fargate in eks.
