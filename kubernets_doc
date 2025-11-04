@@ -343,8 +343,64 @@ Scaling Types:
     Your app is stateful or not easily scaled horizontally.
     You want to optimize resource usage automatically.
 
-### Health Probes ###
+✅ Health Probes ###
 ----------------------
+
+
+✅ configmaps and secrets :
+---------
+configmap: 
+ you can use the configmaps as environment variable and as volume mounts
+ to create and add as a volume mount create the configmap and in deployment yaml  add volumeMounts and volume
+ ex:  
+  spec: 
+    containers:
+    -  name: dummy-app
+       image: python3:1.0
+       volumeMounts: 
+       - name: my-db-vol   ## name is same as the volume
+         mountPath: /opt
+    volumes:
+    -  name: my-db-vol    ## volume name 
+       ConfigMap:
+          name: test-cm   ## Configmap name
+
+$$$ Secrets:
+------------
+imperative way :
+   kubectl create secret generic db-secret \
+  --from-literal=username=admin \
+  --from-literal=password=MyP@ssw0rd
+Declarative way :
+----------
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: db-secret
+      type: Opaque
+      data:
+        username: YWRtaW4=        # base64 for "admin"
+        password: TXlQQHNzdzByZA==  # base64 for "MyP@ssw0rd"
+
+
+how to use secret in deployment yaml:
+ -----------
+  spec:
+  containers:
+    - name: demo-container
+      image: nginx
+      env:
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+  
 
 🔒CERTIFICATES IN KUBERNETES 🔒
 -------------------------------
@@ -437,9 +493,25 @@ Types of authorization:
 
 ✅ Role Based Access Control Kubernetes: 
 ------
+kubernetes does not deal with user management , it offloads it to identity providers like : aws IAM, LDAP, Azure active Dairectory
+RBAC (Role-Based Access Control) controls who can do what within a Kubernetes cluster.
+
+It uses four key objects: Role, ClusterRole, RoleBinding ,ClusterRoleBinding
+🔸 1. Role : A Role defines a set of permissions (like read, write, delete) for resources within a specific namespace.
+🔸 2. ClusterRole: A ClusterRole is similar to a Role — but it’s cluster-wide.
+    It can:
+    Grant permissions across all namespaces, or
+    Be used for non-namespaced resources (like nodes, persistent volumes, etc.)
+
+RoleBinding → connects a Role to a user or service account in a namespace
+ClusterRoleBinding → connects a ClusterRole to a user or service account cluster-wide
+
 
 ✅ service accounts:
 --------------------
+
+
+
 
 
 ✅Kubernetes Network Policies :
@@ -449,5 +521,10 @@ CNI (container network interface) :
 It’s a plugin system that tells Kubernetes how Pods get network connectivity —
 how they get IPs, talk to each other, and reach the outside world.
 
-Think of CNI as the network driver for your cl
+Think of CNI as the network driver for your 
+
+
+✅ Custom resource definition (CRD)
+----------------------------
+
 
