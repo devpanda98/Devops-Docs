@@ -507,6 +507,43 @@ RoleBinding → connects a Role to a user or service account in a namespace
 ClusterRoleBinding → connects a ClusterRole to a user or service account cluster-wide
 
 
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: development
+rules: 
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+##  here in role yaml you have to mentiones rules: apigroups , resources(that you want to add for the role), verbs (here you add what kind of access you want )
+
+### Rolebinding:
+ 
+apiVersion: rbac.authorization.k8s.io/v1
+Kind: RoleBinding
+metadata: 
+   name: read-pods-binding
+   namespace: development
+subjects:
+- Kind: User
+  name: dev-user
+  apiGroup: rbac.authorization.k8s.io 
+RoleRef:
+- kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+
+## in RoleBinding you have to add subjects: under that add - kind:User, name of user, apigroup that is you added in the apiVersion
+next add RoleRef , this is the role you want to bind with the user, in this add Roleref: kind: Role, name of the role you have created,
+apiGroup
+
+
+### Cluster Role and Role binding:
+ -----------
+
+
+
 ✅ service accounts:
 --------------------
 
