@@ -1,0 +1,8 @@
+📊 ECR (Elastic Container Registry): 
+
+its a container registry similar to Dockerhub,it is used to store the Docker images.
+if there is Elastic in the name then the service is highly scalable and available in nature .
+
+
+
+--------
