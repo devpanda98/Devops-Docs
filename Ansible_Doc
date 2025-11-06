@@ -1,0 +1,88 @@
+### Ansible ###
+------------------------------------------
+🧩 why Ansible is called agentless: 
+Ansible is called “agentless” because — unlike many other configuration management tools (like Puppet, Chef, or SaltStack) — it does not require any software agent to be installed on the managed nodes.
+Ansible inventory syntax:
+
+🧱 1. Multiple Hosts (Basic Groups)                    
+
+Used to define several servers under specific groups.
+This helps you manage similar systems together.
+
+Example:
+[webservers]
+web1.example.com
+web2.example.com
+192.168.1.10
+192.168.1.11
+
+[dbservers]
+db1.example.com
+db2.example.com 
+
+🧱 2. Adding SSH User, Port, and Key
+You can define how Ansible connects to each host using connection variables.
+Example:
+[webservers]
+web1 ansible_host=192.168.1.10 ansible_user=ubuntu ansible_port=22 ansible_ssh_private_key_file=~/.ssh/id_rsa
+web2 ansible_host=192.168.1.11 ansible_user=ubuntu ansible_port=22 ansible_ssh_private_key_file=~/.ssh/id_rsa
+✅ This tells Ansible which user, port, and SSH key to use when connecting.
+
+🧱 3. Using Hostname Ranges:
+When hosts follow a naming pattern, you can use a range to shorten your file.
+Example:
+[appservers]
+app[1:5].example.com
+
+✅ This automatically expands to:
+app1.example.com
+app2.example.com
+app3.example.com
+app4.example.com
+app5.example.com
+
+🧱 4. Nested Groups (Children Groups):
+You can combine multiple groups into a single parent group for easier management.
+Example:
+[frontend]
+web1
+web2
+[backend]
+db1
+db2
+[production:children]
+frontend
+backend
+
+The production group now includes all servers from both frontend and backend.
+
+✅ Here’s a typical Ansible project directory structure:
+
+ansible-project/
+├── ansible.cfg
+├── inventory/
+│   ├── hosts.ini
+│   └── group_vars/
+│       ├── all.yml
+│       └── webservers.yml
+├── playbooks/
+│   ├── site.yml
+│   ├── web.yml
+│   └── db.yml
+├── roles/
+│   ├── webserver/
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   ├── handlers/
+│   │   │   └── main.yml
+│   │   ├── templates/
+│   │   │   └── nginx.conf.j2
+│   │   ├── files/
+│   │   │   └── index.html
+│   │   ├── vars/
+│   │   │   └── main.yml
+│   │   └── defaults/
+│   │       └── main.yml
+│   └── dbserver/
+│       └── ...
+└── requirements.yml
