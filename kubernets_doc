@@ -634,12 +634,128 @@ it’s probably a subresource.
 
 ✅Kubernetes Network Policies :
 ----------------
-CNI (container network interface) :
+
+🧩DNS ():
+------------------
+DNS lookup : A DNS lookup is the process of translating a domain name (like www.google.com) into its IP address so computers can connect. 
+Your computer checks its cache first, then asks DNS servers in order (root → TLD → authoritative) until it finds the IP address.
+
+Here’s how it works step-by-step:
+-- You enter a domain name — For example, you type www.example.com into your browser.
+-- The computer checks local cache — It first checks if it already knows the IP address from a previous visit.
+-- If not found, it queries a DNS resolver — This is usually provided by your Internet Service Provider (ISP) or a public DNS (like Google DNS 8.8.8.8).
+-- The resolver contacts DNS servers in a hierarchy:
+-- Root DNS servers (tell where to find .com servers)
+-- TLD (Top-Level Domain) servers (tell where to find example.com servers)
+-- Authoritative DNS servers (store the actual IP address for www.example.com)
+-- The resolver returns the IP address to your computer.
+-- Your browser connects to the web server using that IP address.
+
+DNS record types 👇: 
+
+| **Record Type** | **Full Form / Meaning**   | **Purpose / Function**                                     | **Example**                                       |
+| --------------- | ------------------------- | ---------------------------------------------------------- | ------------------------------------------------- |
+| **A**           | Address Record            | Maps a domain to an **IPv4 address**                       | `example.com → 192.168.1.1`                       |
+| **AAAA**        | IPv6 Address Record       | Maps a domain to an **IPv6 address**                       | `example.com → 2001:db8::1`                       |
+| **CNAME**       | Canonical Name Record     | Creates an alias to another domain                         | `www.example.com → example.com`                   |
+| **MX**          | Mail Exchange Record      | Directs email to a mail server                             | `example.com → mail.example.com`                  |
+| **NS**          | Name Server Record        | Specifies the authoritative DNS servers for the domain     | `example.com → ns1.host.com`                      |
+| **TXT**         | Text Record               | Holds text info (like SPF, DKIM, domain verification)      | `v=spf1 include:_spf.google.com ~all`             |
+| **PTR**         | Pointer Record            | Used for **reverse DNS lookup** (IP → domain)              | `192.168.1.1 → example.com`                       |
+| **SRV**         | Service Record            | Defines the location of specific services (e.g. SIP, LDAP) | `_sip._tcp.example.com → sipserver.example.com`   |
+| **SOA**         | Start of Authority Record | Contains admin info and DNS zone settings                  | Primary server, contact email, refresh time, etc. |
+
+
+🧩 Core DNS :
+------------------
+CoreDNS lets Pods find and communicate with each other using service names instead of IPs.
+
+🏷️ How CoreDNS Works in Kubernetes (Simple Version): 
+🏷️ 1. Service gets a DNS name
+When you create a Service in Kubernetes, it automatically gets a DNS name like:
+my-service.my-namespace.svc.cluster.local
+This name is managed by CoreDNS and points to the ClusterIP of the Service.
+
+📩 2. Pod makes a DNS request
+When a Pod tries to connect to a service (like my-service.my-namespace.svc.cluster.local),
+it looks at its /etc/resolv.conf file.
+inside th resolv.conf file you will find 
+nameserver 10.96.0.10
+search default.svc.cluster.local svc.cluster.local cluster.local
+options ndots:5
+
+the nameserver ip is the Ip of CoreDNS svc , so the request from the pod goes to this ip 
+That file tells the Pod to send DNS queries to the CoreDNS service IP (for example, 10.96.0.10).
+
+🌐 3. DNS query goes to CoreDNS
+The DNS request is sent to CoreDNS, which runs as a Deployment in the kube-system namespace.
+CoreDNS is exposed through a Service called kube-dns or coredns.
+⚙️ 4. CoreDNS checks its Corefile
+CoreDNS uses a configuration file called the Corefile.
+This file has rules and plugins that tell CoreDNS how to process DNS queries.
+Example snippet:
+.:53 {
+    kubernetes cluster.local in-addr.arpa ip6.arpa
+    forward . /etc/resolv.conf
+    cache 30
+}
+🔍 5. CoreDNS uses the “kubernetes” plugin
+The kubernetes plugin helps CoreDNS look up Service and Pod names inside the cluster.
+It talks to the Kubernetes API server to find the correct IP address for the requested service or pod.
+
+📤 6. CoreDNS sends a DNS response
+CoreDNS replies to the Pod with the ClusterIP of the requested service.
+The Pod then connects to that IP, and traffic is load-balanced across the backend Pods of that Service.
+
+🌏 7. Handling external queries
+If the domain isn’t part of the cluster (like google.com),
+CoreDNS forwards the query to an external DNS server (defined in its /etc/resolv.conf).
+
+✅ In short:
+Pod → CoreDNS → Kubernetes API → CoreDNS reply → Pod connects to Service
+------------------------------------------------------------------------------------------------------------------
+📝 If you feel like you core DNS is not coming up then you should check the networking addOn, like calico 
+you should check this should be there first , otherwise the CoreDns pods will not come up.
+
+📝 Notes for Calico Setup on AWS (Kubeadm Cluster)
+
+🟢 1. Disable Source/Destination Check
+Go to each EC2 instance → Actions → Networking → Change Source/Destination Check → Disable
+This allows the instance to route traffic for other nodes, which is required because Calico makes each node act like a router.
+If not disabled, Pod-to-Pod communication between nodes will fail.
+
+🟣 2. IP Auto-Detection in Calico
+Calico needs to know which IP (network interface) to use on each node.
+Enable or configure IP auto-detection so Calico picks the correct internal VPC IP (not docker0 or public IP).
+Add this in the Calico DaemonSet (calico-node):
+
+- name: IP_AUTODETECTION_METHOD
+  value: "can-reach=8.8.8.8"
+This ensures correct Pod routing and BGP communication between nodes.
+🧠 In Short:
+Disable Source/Destination Check → allows EC2 nodes to route Pod traffic.
+Enable IP Auto-Detection → ensures Calico uses the correct internal IP for networking.
+✅ Both steps are mandatory for Calico to work properly on AWS EC2 Kubernetes clusters.
+--------------------------------------------------------------------------------------------------------------
+✅   CNI (container network interface) :
 -----
 It’s a plugin system that tells Kubernetes how Pods get network connectivity —
 how they get IPs, talk to each other, and reach the outside world.
 
 Think of CNI as the network driver for your 
+
+
+
+
+
+🧩 Pod Networking:
+-----------
+>By default pods can communicate with each other , there is no limitation.
+>if there are multiple containers in a pod like ex: sidecar container in istio, they can communicate with eachother using pods localhost,
+but the port should be different for each container.
+>but if the container inside one pod cant connect to the container of another pod with localhost 
+>
+
 
 
 ✅ Custom resource definition (CRD)
