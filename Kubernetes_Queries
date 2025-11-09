@@ -1,0 +1,189 @@
+❓ Question:
+
+1. How can I restrict the Ubuntu user from having full Kubernetes admin access and instead make it use a new limited-access Kubernetes user (like si_pca)?
+2. If the node (Linux) user and the Kubernetes cluster user are different, then how come when I log in as the Ubuntu user on a node, I can still run kubectl commands successfully?
+3. I don’t want the Ubuntu user to have full admin access. I want to create a new Kubernetes user (e.g., si_pca) with limited permissions, and make sure that when I use the Ubuntu user, it only has the permissions I assigned to si_pca.
+How can I do that?
+
+all 3 questions have same answer:
+
+💡 Key idea:
+
+Just because you’re logged in as a Linux user (like ubuntu) doesn’t mean Kubernetes cares who that is.
+kubectl doesn’t authenticate using your Linux login —
+it authenticates using the credentials inside the kubeconfig file.
+
+🧩 So what’s actually happening
+
+When you run:
+
+ssh ubuntu@<node-ip>
+kubectl get pods
+
+You might think:
+
+“I’m the ubuntu user — how can I access the cluster if I never added ubuntu as a Kubernetes user?”
+Here’s why it still works 👇
+
+🔍 1. The kubeconfig file is the real key
+
+When you installed Kubernetes (with kubeadm), you ran:
+sudo cp /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+
+
+That file (admin.conf) already contains cluster admin credentials —
+specifically, a client certificate signed by the cluster CA that authenticates as:
+
+user: kubernetes-admin
+group: system:masters
+
+So even though you’re logged in as ubuntu on the OS,
+kubectl uses the kubernetes-admin identity from that kubeconfig.
+
+🧠 2. The OS user doesn’t matter to Kubernetes
+
+Kubernetes doesn’t look at your system username (ubuntu, ec2-user, etc.).
+It only checks:
+what’s inside your kubeconfig file,
+and whether those credentials are valid and have permission (via RBAC).
+
+So:
+The “ubuntu” user only matters because it owns the kubeconfig file.
+
+⚙️ 3. If you remove that kubeconfig
+
+If you delete or rename /home/ubuntu/.kube/config:
+mv ~/.kube/config ~/.kube/config.bak
+kubectl get pods
+
+You’ll get:
+The connection to the server <ip>:6443 was refused
+or
+
+error: You must be logged in to the server (Unauthorized)
+
+
+✅ That shows the ubuntu user itself never had Kubernetes access — it was the credentials in the kubeconfig that gave access.
+🔑 Summary
+Layer	Who it is	Used for	Example
+OS	ubuntu	SSH login to node	ssh ubuntu@node
+Kubeconfig	kubernetes-admin	Access cluster via kubectl	kubectl get pods
+Kubernetes RBAC	Defines what kubernetes-admin can do	Full admin rights	
+
+So to say it simply:
+When you run kubectl, Kubernetes doesn’t care that you’re “ubuntu.”
+
+then :
+
+🎯 Your goal
+
+You don’t want the ubuntu user to use the admin credentials anymore.
+Instead, you want:
+The ubuntu user to use a new Kubernetes identity (si_pca)
+The si_pca user to have limited permissions (via Role + RoleBinding)
+
+🪄 Step-by-step plan
+Step 1. Create a new Kubernetes user (certificate-based)
+
+You already know these commands — they make a new Kubernetes identity:
+
+# Generate private key
+openssl genrsa -out si_pca.key 2048
+
+# Create a certificate signing request (CSR)
+openssl req -new -key si_pca.key -out si_pca.csr -subj "/CN=si_pca/O=si_team"
+
+# Sign CSR with the cluster's CA
+sudo openssl x509 -req -in si_pca.csr \
+  -CA /etc/kubernetes/pki/ca.crt \
+  -CAkey /etc/kubernetes/pki/ca.key \
+  -CAcreateserial -out si_pca.crt -days 365
+
+
+✅ Now you have:
+
+si_pca.crt
+si_pca.key
+
+This defines your Kubernetes user named si_pca (from /CN=si_pca).
+Step 2. Add this user to your kubeconfig
+You’ll create a new entry in kubeconfig for this user:
+
+kubectl config set-credentials si_pca \
+  --client-certificate=/home/ubuntu/si_pca.crt \
+  --client-key=/home/ubuntu/si_pca.key \
+  --embed-certs=true
+
+
+Then create a context that uses this user:
+
+kubectl config set-context si_pca-context \
+  --cluster=kubernetes \
+  --user=si_pca
+
+
+Switch to that context:
+
+kubectl config use-context si_pca-context
+Now kubectl commands will use the si_pca identity.
+
+Step 3. Give limited permissions to si_pca
+Example: give si_pca permission to list and get pods only.
+
+1️⃣ Create a Role:
+
+# si_pca-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: si-pca-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+
+
+2️⃣ Create a RoleBinding:
+
+# si_pca-rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: si-pca-rolebinding
+  namespace: default
+subjects:
+- kind: User
+  name: si_pca
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: si-pca-role
+  apiGroup: rbac.authorization.k8s.io
+
+
+Apply both:
+
+kubectl apply -f si_pca-role.yaml
+kubectl apply -f si_pca-rolebinding.yaml
+
+Step 4. Test it
+
+Now, as the ubuntu user (still in the si_pca context):
+
+kubectl get pods        # ✅ should work
+kubectl get secrets     # ❌ should be forbidden
+
+
+If you see:
+
+Error from server (Forbidden): pods is forbidden
+for commands not allowed — that means RBAC is working correctly.
+
+🧠 Key takeaway
+
+The ubuntu user (Linux login) now runs kubectl as si_pca (Kubernetes identity).
+The permissions are whatever you gave to si_pca in RBAC.
+
+The old admin.conf is no longer used (so ubuntu no longer has full admin rights).
+It cares what user identity is defined inside your kubeconfig file — that’s the real “cluster user.
