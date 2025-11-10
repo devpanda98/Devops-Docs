@@ -761,4 +761,90 @@ but the port should be different for each container.
 ✅ Custom resource definition (CRD)
 ----------------------------
 
+✅ Persistent Volume, Persistent Volume Claim & Storage Class:
+-------------------------------
+.
 
+🧱 1. Persistent Volume (PV) :
+🔹 Definition:
+A Persistent Volume (PV) is a piece of storage in the cluster that has been provisioned either statically by an administrator or dynamically using a StorageClass.
+It’s a cluster resource, just like CPU or RAM, but specifically for storage.
+It provides an abstraction over the actual storage backend (e.g., local disk, NFS, AWS EBS, Azure Disk, GCP Persistent Disk, etc.).
+
+🔹 Key Points:
+PVs are independent of Pods – they outlive the Pod lifecycle.
+Once created, they are available for claims (PVCs) to use.
+They are defined using a YAML manifest.
+
+📦 2. Persistent Volume Claim (PVC)
+🔹 Definition:
+A Persistent Volume Claim (PVC) is a request for storage by a user or a Pod.
+It’s similar to a Pod requesting specific resources (like CPU and memory).
+PVCs bind to PVs that meet their requested storage requirements and access modes.
+
+🔹 Key Points:
+A PVC automatically finds and binds to an appropriate PV.
+Pods use PVCs as volumes to store and retrieve data.
+PVCs abstract away the details of the underlying PV.
+
+📦 Scenarios: 
+can i attach multiple pvc to one pv ? 
+
+✅ It depends on the PV’s accessModes.
+By default, only certain access modes allow multiple PVCs (and hence multiple Pods) to use the same PV.
+
+🧱 Access Modes Recap
+Each PersistentVolume (PV) defines how it can be mounted, using the accessModes field:
+
+| Access Mode          | Abbreviation | Description                                                        | Multiple PVCs?              |
+| -------------------- | ------------ | ------------------------------------------------------------------ | --------------------------- |
+| **ReadWriteOnce**    | RWO          | Volume can be mounted as read-write by **a single node**           | ❌ No (only one PVC bound)   |
+| **ReadOnlyMany**     | ROX          | Volume can be mounted as read-only by **many nodes**               | ✅ Yes (read-only)           |
+| **ReadWriteMany**    | RWX          | Volume can be mounted as read-write by **many nodes**              | ✅ Yes (shared write access) |
+| **ReadWriteOncePod** | RWOP         | Volume can be mounted by **a single Pod** only (even on same node) | ❌ No                        |
+
+
+❌ No, Kubernetes does not automatically split one large PV into smaller PVCs.
+
+Each PV is treated as a single, indivisible storage unit.
+When a PVC binds to a PV:
+The entire PV (all 10 GB) is reserved for that one PVC,
+Even if the PVC only requested 1 GB,
+The remaining 9 GB is not available to other PVCs.
+ 
+💯 if the pvc is for 1 gb i cant add more then 1 gb of t]data in that pv even if the pv has 9gb left cai=use i claim only 1 gb and rest of it jst locked ?
+
+.
+
+🧱 Scenario Recap
+
+You have:
+A PV of 10 GB capacity
+A PVC that requests 1 GB
+The PVC successfully binds to that PV
+And you’re asking:
+“Even though the PV has 9 GB left, can I only use 1 GB because I claimed 1 GB in my PVC?”
+
+⚙️ What Actually Happens
+Here’s the key idea 👇
+Once a PVC binds to a PV, the entire PV is dedicated to that PVC — not just the requested size.
+
+That means:
+Kubernetes doesn’t slice or enforce sub-allocations within a PV.
+The PVC’s requests.storage (1 GB) is just the minimum requirement for matching.
+The actual usable space inside the Pod is whatever the PV backend provides (in this case, 10 GB).
+
+So practically:
+
+✅ You can use the full 10 GB of space inside the container.
+❌ But that PV is locked to that PVC — no other PVCs can use the leftover capacity.
+
+⚙️ 1. Why Kubernetes Can’t Enforce Size
+
+When a PV is bound to a PVC, Kubernetes just passes the volume to the container runtime.
+Kubernetes does not:
+
+Partition or slice the disk, or
+Apply filesystem quotas inside the volume.
+So even if the PVC says 1Gi, Kubernetes won’t stop you from filling the disk — unless the underlying storage system enforces a limit.
+That’s why the enforcement must happen in your storage backend (NFS, Ceph, LVM, etc.).
