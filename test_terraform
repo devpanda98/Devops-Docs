@@ -296,3 +296,125 @@ Don’t edit manually.
 If lost → Terraform may recreate or orphan resources.
 Keep it safe (use remote state for teams).
 
+Terraform conditionals statements :
+-----------------
+Terraform doesn’t have traditional if { } else { } blocks.
+Instead, it uses conditional expressions (also called ternary operators) in this form:
+
+condition ? true_value : false_value
+
+variable "env" {
+  default = "dev"
+}
+
+resource "aws_instance" "example" {
+  instance_type = var.env == "prod" ? "t3.large" : "t3.micro"
+}
+
+
+So Here if the var.env is prod (you will define with ==) the "? " here is kind of working as if statement , and before and after the "  : "
+
+is working as the values. so here if the var.env is prod then in which ? is for if so if it is true means the value is prod then it will take the first value
+before vaue and if not satisfies means var.env is not prod then it will take the after : value .
+
+
+✅ Example 2: Conditional count
+resource "aws_instance" "example" {
+  count = var.create_instance ? 1 : 0
+
+  ami           = "ami-123456"
+  instance_type = "t2.micro"
+}
+
+
+If var.create_instance is true, Terraform creates one instance.
+If it’s false, it creates none.
+
+
+🔹 Example 3: Nested conditions
+
+You can nest conditionals too:
+
+instance_type = var.env == "prod" ? "t3.large" : (
+  var.env == "staging" ? "t3.medium" : "t3.micro"
+)
+
+Checks if the variable env equals "prod".
+If ✅ true → result = "t3.large".
+If ❌ false → Terraform moves to what’s inside the parentheses ( ... ).
+
+Next  one runs only if the first condition was false.
+
+in Terraform, you don’t write if / elif / else directly like in Python —
+but you can simulate that same logic using either:
+
+Nested conditionals (? :) — like your example
+
+A cleaner approach with lookup() or maps
+
+
+🔹 Example 4: With locals
+locals {
+  bucket_name = var.is_prod ? "my-prod-bucket" : "my-dev-bucket"
+}
+
+
+Then use it:
+
+resource "aws_s3_bucket" "example" {
+  bucket = local.bucket_name
+}
+
+
+
+| Purpose                    | Example                                |
+| -------------------------- | -------------------------------------- |
+| General syntax             | `condition ? true_value : false_value` |
+| Conditional resource count | `count = var.enabled ? 1 : 0`          |
+| Nested condition           | `a ? b : (c ? d : e)`                  |
+
+
+
+🚀  Terraform state management and Backends:
+---------------
+In Terraform, the TF state (short for Terraform state) is a file (terraform.tfstate file) that keeps track of the current state of your infrastructure as known to Terraform.
+
+terraform refresh is a command that updates your Terraform state file (terraform.tfstate) with the real-world state of your infrastructure.
+
+>>>>  terraform refresh
+
+Terraform:
+Reads the existing terraform.tfstate file.
+Queries your providers (AWS, Azure, GCP, etc.) to get the current, real values of all resources.
+Updates the local (or remote) state file to reflect those values.
+It does not change your actual infrastructure — it only updates the state.
+
+⚙️ Commands that interact with state
+
+terraform show   – view the current state.
+
+terraform state list – list all tracked resources.
+
+terraform state show <resource> – view details for a specific resource.
+
+terraform state rm <resource> – remove a resource from the state.  (it doesnt delete the actual resource it jst delete that resource part from tfstate file so you dont have to manage that resource through terraform )
+
+terraform state mv – move resources between states or rename them.
+
+terraform import :
+
+The terraform import command is used to bring an existing real-world resource (for example, an AWS EC2 instance or Azure storage account) into Terraform’s state — so that Terraform can start managing it.
+
+terraform import <resource_address> <real_resource_id>
+ex:   terraform import aws_instance.myserver i-0a1b2c3d4e5f6g7h8
+
+
+
+
+
+
+
+
+
+
+
