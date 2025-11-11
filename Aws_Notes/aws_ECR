@@ -4,5 +4,18 @@ its a container registry similar to Dockerhub,it is used to store the Docker ima
 if there is Elastic in the name then the service is highly scalable and available in nature .
 
 
-
---------
+Create an ECR registry with aws cli :
+1. aws configure
+2. Create an ECR Repository:
+ aws ecr create-repository --repository-name my-app --region us-east-1
+3. Authenticate Docker with ECR:
+  aws ecr get-login-password --region us-east-1 \
+| docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-east-1.amazonaws.com
+4. docker build -t my-app .
+5. Tag Your Image for ECR:
+  docker tag my-app:latest 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+6. Push the Image to ECR:
+ docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+7. Pull the Image from ECR (for ECS/EKS):
+ docker pull 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+8. 
