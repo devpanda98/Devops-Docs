@@ -1,0 +1,70 @@
+✅ Read command :
+ex : 
+echo "enter the name: "
+read name
+echo "name is $name"
+
+## if you want to enter the input in same line (use p flag)
+read -p 'username: ' user_var
+echo "username : $user_var"
+## if you dont want to show the input that the user is giving (use s flag)
+read -sp 'username: ' user_var
+echo ## add this line otherwise the input and the output will be in the same line, read -s, the input does not move to a new line after the user presses Enter.
+                                Without this, your next output would appear on the same line as your prompt.
+echo "username : $user_var"
+
+## to print the inputs as an ARRAY:(user a flag)
+echo "enter names"
+read -a names
+echo "Names : ${names[0]}, ${names[1]}"   (it will use indexing to print the values )
+
+output : Names: ram, shyam
+
+##  lets say u dint give any variable to read command , in that case you can use builtin variable $REPLY it will take the values
+
+echo "enter the name: "
+read 
+echo "name is $REPLY"
+
+
+✅ Solution 1 — Parse Comma-Separated Input
+
+We can read the whole line into one variable, then split it by commas using IFS (Internal Field Separator): (user -r flag to get raw inputs)
+
+#!/bin/bash
+read -p 'Enter three numbers (comma separated): ' input
+# Split input by commas
+IFS=',' read -r num1 num2 num3 <<< "$input"
+sum=$((num1 + num2 + num3))
+echo "Sum of the numbers is $sum"
+
+## Use -t then add the time limit in sec, here
+
+BASH FLAGS TO USE :
+| Flag        | Description                                                                    | Example                                       | Notes                                                           |
+| ----------- | ------------------------------------------------------------------------------ | --------------------------------------------- | --------------------------------------------------------------- |
+| `-p`        | **Prompt** – Display a message before waiting for input.                       | `read -p "Enter name: " name`                 | Most commonly used; shows inline prompt.                        |
+| `-s`        | **Silent input** – Don’t echo what the user types.                             | `read -sp "Password: " pass`                  | Used for passwords; input is hidden.                            |
+| `-t`        | **Timeout** – Stop waiting after *N* seconds.                                  | `read -t 5 -p "Enter value: " var`            | If time expires, exit code is non-zero (`$? = 1`).              |
+| `-n`        | **Character limit** – Accept only *N* characters, then continue automatically. | `read -n 1 -p "Press any key: " key`          | Great for “press any key to continue” prompts.                  |
+| `-r`        | **Raw mode** – Don’t interpret backslashes (`\`) as escape characters.         | `read -r line`                                | Always use this when reading arbitrary text (e.g., file paths). |
+| `-a`        | **Array mode** – Store input words into an array.                              | `read -a arr`                                 | Access values like `${arr[0]}`, `${arr[1]}` etc.                |
+| `-d`        | **Delimiter** – Stop reading when this character is found.                     | `read -d ';' input`                           | Default delimiter is newline (`\n`).                            |
+| `-N`        | **Read exactly N characters** (waits until all N are entered).                 | `read -N 5 code`                              | Useful for fixed-length inputs like OTPs.                       |
+| `-u`        | **Read from file descriptor N** instead of standard input.                     | `read -u 3 line`                              | Used for reading from open files or subshells.                  |
+| `-e`        | **Enable readline editing** (arrow keys, history, etc.)                        | `read -e -p "Command: " cmd`                  | Only works in interactive shells; lets you use line editing.    |
+| `-i`        | **Provide default text** (requires `-e`).                                      | `read -e -i "default" -p "Enter value: " var` | Lets user edit default input easily.                            |
+| `-n` & `-s` | Combine to hide and limit input to N chars.                                    | `read -n 1 -s key`                            | Example: press any key silently.                                |
+
+
+
+| Feature            | Description                                                | Example                                     |
+| ------------------ | ---------------------------------------------------------- | ------------------------------------------- |
+| `IFS`              | Change input field separator (default: space/tab/newline). | `IFS=',' read -r a b c <<< "1,2,3"`         |
+| `<<<`              | “Here-string” – Feed a variable as input to `read`.        | `read var <<< "$data"`                      |
+| `-` after options  | Stops flag parsing (treat next args as data).              | `read -- -name` reads `-name` literally.    |
+| `exit code` (`$?`) | `0` if input received, `1` if timeout (with `-t`).         | `if [ $? -ne 0 ]; then echo "Timeout!"; fi` |
+
+
+
+
