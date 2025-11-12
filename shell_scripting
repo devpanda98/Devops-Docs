@@ -61,9 +61,187 @@ BASH FLAGS TO USE :
 | Feature            | Description                                                | Example                                     |
 | ------------------ | ---------------------------------------------------------- | ------------------------------------------- |
 | `IFS`              | Change input field separator (default: space/tab/newline). | `IFS=',' read -r a b c <<< "1,2,3"`         |
-| `<<<`              | “Here-string” – Feed a variable as input to `read`.        | `read var <<< "$data"`                      |
+| `<<<`              | “Here-string” – Feed a variable as input to 
+`read`.        | `read var <<< "$data"`                      |
 | `-` after options  | Stops flag parsing (treat next args as data).              | `read -- -name` reads `-name` literally.    |
 | `exit code` (`$?`) | `0` if input received, `1` if timeout (with `-t`).         | `if [ $? -ne 0 ]; then echo "Timeout!"; fi` |
+
+👍 Comparison Operators:
+----------------------
+🧩 1. Three Different Comparison Contexts in Bash
+
+| Context     | Syntax                | Type of Comparison                                  | Example         |
+| ----------- | --------------------- | --------------------------------------------------- | --------------- |
+| `[ ... ]`   | Test command          | Strings / Files / Numbers (with `-eq`, `-lt`, etc.) | `[ $a -lt $b ]` |
+| `[[ ... ]]` | Extended test         | Safer for strings, supports pattern matching        | `[[ $a < $b ]]` |
+| `(( ... ))` | Arithmetic evaluation | **Pure integer math & comparison**                  | `(( a < b ))` ✅ |
+
+
+Bash actually has two sets of comparison operators:
+One set for numbers (arithmetic comparison)
+Another set for strings (text comparison)
+
+🧮 1. Numeric Comparison Operators
+Used when comparing numbers (integers).
+
+| Operator | Meaning                  | Example         | Result |
+| -------- | ------------------------ | --------------- | ------ |
+| `-eq`    | equal to                 | `[ 5 -eq 5 ]`   | true   |
+| `-ne`    | not equal to             | `[ 5 -ne 8 ]`   | true   |
+| `-lt`    | less than                | `[ 3 -lt 5 ]`   | true   |
+| `-le`    | less than or equal to    | `[ 3 -le 3 ]`   | true   |
+| `-gt`    | greater than             | `[ 10 -gt 5 ]`  | true   |
+| `-ge`    | greater than or equal to | `[ 10 -ge 10 ]` | true   |
+
+
+🔢 2. Using (( )) for Integer Comparison
+
+Inside (( )), you don’t use -lt, -gt, etc.
+You can use normal arithmetic operators instead:
+
+| Operator | Meaning                  |
+| -------- | ------------------------ |
+| `<`      | less than                |
+| `<=`     | less than or equal to    |
+| `>`      | greater than             |
+| `>=`     | greater than or equal to |
+| `==`     | equal to                 |
+| `!=`     | not equal to             |
+
+
+🧵 3. String Comparison Operators
+Used when comparing text (strings).
+
+| Operator | Meaning                                    | Example                    | Result            |
+| -------- | ------------------------------------------ | -------------------------- | ----------------- |
+| `=`      | strings are equal                          | `[ "$a" = "$b" ]`          | true if same      |
+| `==`     | strings are equal (also valid in `[[ ]]`)  | `[[ "$a" == "$b" ]]`       | true if same      |
+| `!=`     | strings are not equal                      | `[ "$a" != "$b" ]`         | true if different |
+| `<`      | string is less than (lexicographically)    | `[[ "apple" < "banana" ]]` | true              |
+| `>`      | string is greater than (lexicographically) | `[[ "dog" > "cat" ]]`      | true              |
+| `-z`     | string is empty                            | `[ -z "$str" ]`            | true if empty     |
+| `-n`     | string is not empty                        | `[ -n "$str" ]`            | true if not empty |
+
+📂 3. File Test Operators
+
+| Operator          | Test                  | True if…                           |
+| ----------------- | --------------------- | ---------------------------------- |
+| `-e file`         | Exists                | File or directory exists           |
+| `-f file`         | Regular file          | File exists and is not a directory |
+| `-d file`         | Directory             | File is a directory                |
+| `-r file`         | Readable              | File has read permission           |
+| `-w file`         | Writable              | File has write permission          |
+| `-x file`         | Executable            | File has execute permission        |
+| `-s file`         | Non-empty             | File size > 0                      |
+| `-L file`         | Symbolic link         | File is a symlink                  |
+| `file1 -nt file2` | Newer than            | file1 is newer                     |
+| `file1 -ot file2` | Older than            | file1 is older                     |
+| `-O file`         | Owned by current user | true if owned                      |
+| `-G file`         | Group ID matches      | true if group matches              |
+
+
+
+🧠 4. Combining Conditions
+
+You can combine tests using:
+
+-a → AND
+-o → OR
+! → NOT
+
+
+🧠 Bash Operators Cheat Sheet
+🔹 1. Arithmetic Operators (used inside (( ... )))
+| Operator                     | Meaning             | Example            | Result              |
+| ---------------------------- | ------------------- | ------------------ | ------------------- |
+| `+`                          | Addition            | `(( a = b + c ))`  | Sum of b and c      |
+| `-`                          | Subtraction         | `(( a = b - c ))`  | Difference          |
+| `*`                          | Multiplication      | `(( a = b * c ))`  | Product             |
+| `/`                          | Division            | `(( a = b / c ))`  | Quotient (integer)  |
+| `%`                          | Modulus (remainder) | `(( a = b % c ))`  | Remainder           |
+| `**`                         | Exponentiation      | `(( a = b ** 2 ))` | b squared           |
+| `=`                          | Assignment          | `(( a = 5 ))`      | Assigns 5           |
+| `+=`, `-=`, `*=`, `/=`, `%=` | Compound assignment | `(( a += 1 ))`     | Increment/decrement |
+| `++`                         | Increment           | `(( a++ ))`        | Add 1               |
+| `--`                         | Decrement           | `(( a-- ))`        | Subtract 1          |
+
+
+🔹 2. Arithmetic Comparison Operators (inside (( ... )))
+
+| Operator | Meaning          | Example        | True if...    |
+| -------- | ---------------- | -------------- | ------------- |
+| `==`     | Equal            | `(( a == b ))` | a equals b    |
+| `!=`     | Not equal        | `(( a != b ))` | a not equal b |
+| `<`      | Less than        | `(( a < b ))`  | a is less     |
+| `<=`     | Less or equal    | `(( a <= b ))` | a ≤ b         |
+| `>`      | Greater than     | `(( a > b ))`  | a > b         |
+| `>=`     | Greater or equal | `(( a >= b ))` | a ≥ b         |
+
+🔹 3. Logical Operators
+Used to combine or control multiple commands or conditions.
+
+| Operator | Meaning | Behavior                                             | Example                     |                                             |             |   |                |
+| -------- | ------- | ---------------------------------------------------- | --------------------------- | ------------------------------------------- | ----------- | - | -------------- |
+| `&&`     | AND     | Run next command **only if previous succeeds**       | `mkdir test && cd test`     |                                             |             |   |                |
+| `        |         | `                                                    | OR                          | Run next command **only if previous fails** | `mkdir test |   | echo "Failed"` |
+| `!`      | NOT     | Inverts the exit status (true → false, false → true) | `! false` (returns success) |                                             |             |   |                |
+
+
+🔹 4. Redirection Operators
+
+| Operator | Meaning                     | Example                  |
+| -------- | --------------------------- | ------------------------ |
+| `>`      | Redirect output (overwrite) | `echo "hi" > file.txt`   |
+| `>>`     | Redirect output (append)    | `echo "hi" >> file.txt`  |
+| `<`      | Redirect input              | `sort < file.txt`        |
+| `2>`     | Redirect errors             | `ls /root 2> errors.log` |
+| `&>`     | Redirect stdout + stderr    | `command &> output.log`  |
+
+
+🔹 5. Miscellaneous Operators
+
+| Operator | Meaning                       | Example                         |     |           |
+| -------- | ----------------------------- | ------------------------------- | --- | --------- |
+| `;`      | Command separator             | `cmd1; cmd2` (run sequentially) |     |           |
+| `&`      | Run in background             | `longtask &`                    |     |           |
+| `        | `                             | Pipe output to another command  | `ls | grep txt` |
+| `()`     | Subshell (run in new shell)   | `(cd /tmp && ls)`               |     |           |
+| `{}`     | Command grouping (same shell) | `{ echo A; echo B; }`           |     |           |
+
+
+🧠  Passing Arguments:
+---------------------
+
+🧮 2. How Bash Stores Arguments
+Inside the script, Bash automatically assigns these to special variables:
+
+| Variable | Meaning                          | Example                 |
+| -------- | -------------------------------- | ----------------------- |
+| `$0`     | The name of the script           | `./myscript.sh`         |
+| `$1`     | First argument                   | `apple`                 |
+| `$2`     | Second argument                  | `banana`                |
+| `$3`     | Third argument                   | `cherry`                |
+| `$@`     | All arguments as separate words  | `apple banana cherry`   |
+| `$*`     | All arguments as a single string | `"apple banana cherry"` |
+| `$#`     | Number of arguments passed       | `3`                     |
+
+
+echo "Script name: $0"
+echo "First argument: $1"
+echo "Second argument: $2"
+echo "All arguments: $@"
+echo "Number of arguments: $#"
+
+✅ If Statement ( If then , If then else, If elif else):
+--------------------------------------------
+
+if [ condition ]; then
+    # if condition is true
+    commands
+else
+    # if condition is false
+    other commands
+fi
 
 
 
