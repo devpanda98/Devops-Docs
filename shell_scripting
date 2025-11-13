@@ -66,6 +66,9 @@ BASH FLAGS TO USE :
 | `-` after options  | Stops flag parsing (treat next args as data).              | `read -- -name` reads `-name` literally.    |
 | `exit code` (`$?`) | `0` if input received, `1` if timeout (with `-t`).         | `if [ $? -ne 0 ]; then echo "Timeout!"; fi` |
 
+
+
+
 👍 Comparison Operators:
 ----------------------
 🧩 1. Three Different Comparison Contexts in Bash
@@ -138,6 +141,17 @@ Used when comparing text (strings).
 | `file1 -ot file2` | Older than            | file1 is older                     |
 | `-O file`         | Owned by current user | true if owned                      |
 | `-G file`         | Group ID matches      | true if group matches              |
+
+
+1️⃣ String Test Operators
+| Operator           | Meaning                                                      | Example            |
+| ------------------ | ------------------------------------------------------------ | ------------------ |
+| `-z "$str"`        | True if string is **empty**                                  | `[ -z "$name" ]`   |
+| `-n "$str"`        | True if string is **not empty**                              | `[ -n "$name" ]`   |
+| `"str1" = "str2"`  | True if strings are equal                                    | `[ "$a" = "$b" ]`  |
+| `"str1" != "str2"` | True if strings are not equal                                | `[ "$a" != "$b" ]` |
+| `<`                | True if string1 **comes before** string2 (lexicographically) | `[ "$a" \< "$b" ]` |
+| `>`                | True if string1 **comes after** string2                      | `[ "$a" \> "$b" ]` |
 
 
 
