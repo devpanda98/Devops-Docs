@@ -1,4 +1,19 @@
 Kubernetes cluster creation with Kubeadm:
+
+in master node open these ports : 
+
+6443 for kubeapi server
+10259 for kube scheduler 
+10250 for kubelet
+10257 for kube controller manager 
+2379 - 2380 if you useing multi cluster node the use this for etcd 
+
+then add for worker node 
+
+10256 for kube proxy 
+10250 for kubelet
+30000 - 32767 for node port services
+
 -------------------------------
 ⚙️ 1. Prepare the System (All Nodes)
 Step 1: Update packages
@@ -112,5 +127,24 @@ kubeadm token create --print-join-command
 
 kubectl get nodes
 
+$$  multinode cluster setup $$
+----------------------------------
 
+create a vpc 
+then create security group for master node , worker node and for load balancer.
+
+in mster node security group :
+
+6443 for kubeapi server
+10259 for kube scheduler 
+10250 for kubelet
+10257 for kube controller manager 
+2379 - 2380 if you useing multi cluster node the use this for etcd 
+
+
+then add for worker node sg :
+
+10256 for kube proxy 
+10250 for kubelet
+30000 - 32767 for node port services 
 
