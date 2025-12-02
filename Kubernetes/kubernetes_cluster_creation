@@ -148,3 +148,71 @@ then add for worker node sg :
 10250 for kubelet
 30000 - 32767 for node port services 
 
+CONFIGURE THE LOADBALANCER :
+-----------
+
+1️⃣ Install HAProxy
+sudo apt update
+sudo apt install -y haproxy
+
+2️⃣ Configure HAProxy
+
+Edit the config file:
+sudo nano /etc/haproxy/haproxy.cfg
+
+Replace the content (or add at the end) with:
+
+#---------------------------------------------------------------------
+# HAProxy Kubernetes API Server Load Balancer
+#---------------------------------------------------------------------
+
+frontend k8s-apiserver
+    bind *:6443
+    mode tcp
+    option tcplog
+    default_backend k8s-masters
+
+backend k8s-masters
+    mode tcp
+    balance roundrobin
+    option tcp-check
+    server master1 10.0.27.194:6443 check fall 3 rise 2
+    server master2 10.0.27.105:6443 check fall 3 rise 2
+    # Add more masters here if needed
+
+
+Explanation:
+
+frontend k8s-apiserver → Listens on port 6443 (Kubernetes API)
+backend k8s-masters → Round-robin load balancing between master nodes
+tcp-check → health checks on the TCP port 6443
+master1, master2 → Private IPs of your master nodes
+Adjust the IPs to your actual master nodes.
+
+3️⃣ Enable and restart HAProxy
+sudo systemctl enable haproxy
+sudo systemctl restart haproxy
+sudo systemctl status haproxy
+
+
+HAProxy is now listening on port 6443 and forwarding to your masters
+
+4️⃣ Update kubeadm controlPlaneEndpoint
+
+When initializing the first master (or re-initializing):
+
+sudo kubeadm init \
+  --control-plane-endpoint "<HAProxy-IP-or-DNS-PRIVATEip>:6443" \
+  --upload-certs \
+  --pod-network-cidr=10.244.0.0/16
+
+
+<HAProxy-IP-or-DNS> → The private IP or DNS of the Ubuntu server running HAProxy
+The rest of the process (certificate key, join tokens) remains the same
+
+5️⃣ Notes / Best Practices
+
+Master nodes firewall/security group: allow 6443 from HAProxy IP and 2379-2380 between masters
+HAProxy health checks: tcp-check is enough; can also add SSL checks if using https
+Multiple HAProxy instances: for HA, you can have two HAProxy nodes using keepalived for virtual IP
+
