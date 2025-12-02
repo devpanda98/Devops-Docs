@@ -125,6 +125,7 @@ Used when comparing text (strings).
 | `-z`     | string is empty                            | `[ -z "$str" ]`            | true if empty     |
 | `-n`     | string is not empty                        | `[ -n "$str" ]`            | true if not empty |
 
+
 📂 3. File Test Operators
 
 | Operator          | Test                  | True if…                           |
@@ -143,6 +144,41 @@ Used when comparing text (strings).
 | `-G file`         | Group ID matches      | true if group matches              |
 
 
+=>>   stat -c%s filename   → prints the size in bytes.
+size1=$(stat -c%s "$file1")
+size2=$(stat -c%s "$file2")
+
+| **Method**                         | **Syntax / Example**                                            | **Description**                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------| --------------------------------------------------------------------------------- |
+| Append a single line               | `echo "Text to append" >> filename.txt`                         | Appends a simple string to the end of the file. Creates file if it doesn’t exist. |
+| Append multiple lines              | `cat <<EOL >> filename.txt<br>Line 1<br>Line 2<br>EOL<br>`      | Uses a here-document to append multiple lines at once.                            |
+| Append output of a command         | `date >> filename.txt`                                          | Appends the output of a command (e.g., current date/time) to the file.            |
+| Append output of multiple commands | `{ echo "New session:"<br>  date<br>} >> filename.txt<br>`      | Groups multiple commands and appends all their outputs together.                  |
+
+2. Append multiple lines using a here-document
+
+cat <<EOL >> filename.txt    ## Everything between <<EOL and EOL gets appended to the file.
+Line 1
+Line 2
+Line 3
+EOL
+
+4. Append output of multiple commands
+
+{
+  echo "New session started:"
+  date
+  echo "------------------"
+} >> filename.txt
+
+
+
+
+
+
+
+
+
 1️⃣ String Test Operators
 | Operator           | Meaning                                                      | Example            |
 | ------------------ | ------------------------------------------------------------ | ------------------ |
@@ -152,16 +188,6 @@ Used when comparing text (strings).
 | `"str1" != "str2"` | True if strings are not equal                                | `[ "$a" != "$b" ]` |
 | `<`                | True if string1 **comes before** string2 (lexicographically) | `[ "$a" \< "$b" ]` |
 | `>`                | True if string1 **comes after** string2                      | `[ "$a" \> "$b" ]` |
-
-
-
-🧠 4. Combining Conditions
-
-You can combine tests using:
-
--a → AND
--o → OR
-! → NOT
 
 
 🧠 Bash Operators Cheat Sheet
@@ -179,6 +205,18 @@ You can combine tests using:
 | `++`                         | Increment           | `(( a++ ))`        | Add 1               |
 | `--`                         | Decrement           | `(( a-- ))`        | Subtract 1          |
 
+bc and scale command for arithmatic :
+
+scale :   scale controls decimals,Tells bc how many digits after the decimal to show.
+bc :   bc stands for “Basic Calculator”. It is a command-line tool in Linux/Bash used to perform arithmetic calculations, including:
+       Addition, subtraction, multiplication, division
+       Decimal (floating-point) calculations
+       Advanced math with functions (if -l library is used) like sine, cosine, exponent, logarithm
+
+result=$(echo "scale=2; 10/3" | bc)
+echo $result   # 3.33
+
+
 
 🔹 2. Arithmetic Comparison Operators (inside (( ... )))
 
@@ -194,12 +232,32 @@ You can combine tests using:
 🔹 3. Logical Operators
 Used to combine or control multiple commands or conditions.
 
-| Operator | Meaning | Behavior                                             | Example                     |                                             |             |   |                |
-| -------- | ------- | ---------------------------------------------------- | --------------------------- | ------------------------------------------- | ----------- | - | -------------- |
-| `&&`     | AND     | Run next command **only if previous succeeds**       | `mkdir test && cd test`     |                                             |             |   |                |
-| `        |         | `                                                    | OR                          | Run next command **only if previous fails** | `mkdir test |   | echo "Failed"` |
-| `!`      | NOT     | Inverts the exit status (true → false, false → true) | `! false` (returns success) |                                             |             |   |                |
+1️⃣ AND operator
 
+Symbol in Bash: && (outside [ ]) or -a (inside [ ])
+Meaning: Both conditions must be true. 
+ex:   [ -f "$file" ] && [ -d "$dir" ]  or like this  [ -f "$file" -a -d "$dir" ]
+
+2️⃣ OR operator
+
+Symbol in Bash: || (outside [ ]) or -o (inside [ ])
+Meaning: At least one condition is true.
+ex: [ -f "$file" ] || [ -f "$file1" ]  or like [ -f "$file" -o -f "$file1" ] 
+
+3️⃣ NOT operator
+
+Symbol in Bash: !
+Bash, ! is used to invert the result of a condition.
+Simple explanation:
+If a condition is true, using ! makes it false.
+If a condition is false, using ! makes it true. 
+
+if [ ! -f "file.txt" ]; then
+  echo "file.txt does NOT exist"
+fi
+
+-f "file.txt" → true if the file exists.
+! -f "file.txt" → true if the file does NOT exist.
 
 🔹 4. Redirection Operators
 
@@ -256,6 +314,21 @@ else
     # if condition is false
     other commands
 fi
+
+✅ case statement:
+--------------------------------
+
+case <value> in
+    pattern1)
+        # commands for pattern1
+        ;;
+    pattern2)
+        # commands for pattern2
+        ;;
+    *)
+        # default commands (if no patterns match)
+        ;;
+esac
 
 
 
