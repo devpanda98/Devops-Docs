@@ -235,3 +235,90 @@ Master nodes firewall/security group: allow 6443 from HAProxy IP and 2379-2380 b
 HAProxy health checks: tcp-check is enough; can also add SSL checks if using https
 Multiple HAProxy instances: for HA, you can have two HAProxy nodes using keepalived for virtual IP
 
+-----------
+
+Accessing a Multi-Master Kubernetes Cluster via HAProxy from an External VM
+1️⃣ Cluster Setup
+
+You have a multi-master Kubernetes cluster.
+HAProxy is used as a load balancer in front of the master nodes.
+HAProxy must be in TCP mode (not HTTP/HTTPS) on port 6443, forwarding traffic to all masters.
+
+2️⃣ Making HAProxy reachable externally
+
+Assign a public IP to HAProxy (or use a hostname).
+Update the HAProxy Security Group / firewall rules to allow:
+
+Protocol: TCP
+Port: 6443
+Source: External VM IP (avoid 0.0.0.0/0 in production).
+
+3️⃣ Preparing kubeconfig
+
+Copy the kubeconfig (/etc/kubernetes/admin.conf) from a master node to the external VM:
+scp user@master-node:/etc/kubernetes/admin.conf ~/admin.conf
+
+Or manually copy the YAML content.
+Update the server: field under clusters to point to HAProxy public IP:
+
+server: https://<HAProxy_PUBLIC_IP>:6443
+
+Place kubeconfig in default location:
+
+mkdir -p ~/.kube
+cp ~/admin.conf ~/.kube/config
+
+4️⃣ Install kubectl on Ubuntu
+
+Direct binary method (recommended):
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
+kubectl version --client
+
+5️⃣ Verify connectivity
+
+Test HAProxy API endpoint:
+curl -vk https://<HAProxy_PUBLIC_IP>:6443/healthz
+
+
+Should return ok.
+
+If “HTTP request to HTTPS server” appears, use https://.
+Test kubectl (TLS may fail if cert is legacy):
+kubectl --insecure-skip-tls-verify=true get nodes --kubeconfig=~/.kube/config
+
+6️⃣ Troubleshooting common issues
+Issue	Cause	Fix
+TLS: certificate relies on legacy CN	kube-apiserver cert lacks SANs	Use --insecure-skip-tls-verify or regenerate cert with SANs
+“server rejected our request”	HAProxy misconfigured or kubeconfig invalid	Ensure HAProxy TCP mode, full client cert/key in kubeconfig
+Cannot reach HAProxy	Firewall/SG rules	Open port 6443 for external VM
+7️⃣ Permanent setup for convenience
+
+Copy kubeconfig to ~/.kube/config
+
+Set alias if skipping TLS temporarily:
+alias kubectl='kubectl --insecure-skip-tls-verify=true'
+Add to ~/.bashrc for persistence.
+
+8️⃣ Securing TLS properly (recommended)
+
+Regenerate kube-apiserver certs with HAProxy SAN:
+sudo kubeadm init phase certs apiserver --apiserver-cert-extra-sans=<HAProxy_PUBLIC_IP>
+
+
+Regenerate admin kubeconfig:
+sudo kubeadm init phase kubeconfig admin
+
+Restart kube-apiserver (if not static pod)
+
+Copy updated kubeconfig to external VM
+
+Remove --insecure-skip-tls-verify from alias/commands
+
+9️⃣ Final test
+kubectl get nodes
+kubectl get pods --all-namespaces
+
+
+Should work from external VM securely via HAProxy.
