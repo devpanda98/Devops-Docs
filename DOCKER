@@ -1,0 +1,206 @@
+DOCKER FILE :
+------------------------------------------
+🧨 FROM : specifies the base image 
+🧨 LABEL : LABEL is used whenever someone or some tool needs to read information about the image — during inspection, automation, registries, and organizing images.
+    LABEL project="inventory-service"
+    LABEL app="payment-api"
+    LABEL team="backend"
+🧨WORKDIR :
+   Sets the working directory for subsequent commands.
+🧨 COPY : copy the files 
+🧨 ADD : 
+    Like COPY, but also supports URLs and auto-extracts tar archives.
+    ADD https://example.com/file.tar.gz /tmp/
+🧨 ARG : 
+    Used only during image build.
+    Not available inside the running container.
+    Good for build-time options (e.g., versions).
+    
+    Example:
+    ARG VERSION=1.0
+    After build → VERSION is gone.
+🧨ENV :
+    Available during build and inside the running container.
+    Stays permanently in the final image.
+    Good for runtime configuration.
+    Example:
+    ENV MODE=production
+    Inside container → $MODE is available. 
+🧨 RUN :
+    Executes a command during build to create a new image layer.
+    RUN apt-get update && apt-get install -y python3
+🧨 EXPOSE :
+      Documents which ports the container listens on.
+      EXPOSE 8080
+🧨 VOLUME : 
+      Creates or marks a mount point for persistent storage.
+      VOLUME ["/data"]
+🧨 USER
+      Sets user for subsequent commands.
+      USER appuser
+🧨 ENTRYPOINT :
+      Defines the main command that always runs.
+      Harder to override.
+      Example:
+      ENTRYPOINT ["python"]
+🧨 CMD : 
+      Provides default arguments to ENTRYPOINT
+      — OR becomes the command if no ENTRYPOINT is set.
+      Easy to override using docker run.
+      Example:
+      CMD ["app.py"]
+
+In one sentence:
+ENTRYPOINT = main program, CMD = default arguments (or fallback command).
+
+
+1. ARG → build-time only
+ARG is like a variable used while building the image.
+You can override it during docker build with --build-arg.
+After the image is built, the ARG value disappears.
+
+The running container does not know about it.
+Example:
+ARG environment=prod
+RUN echo "Building for $environment"
+Build with:
+docker build --build-arg environment=dev .
+Output: Building for dev
+Container won’t have $environment set.
+
+2. ENV → runtime variable
+ENV sets a variable inside the container, available at runtime.
+You can override it when running the container using -e or --env.
+Example:
+ENV ENVIRONMENT=prod
+Run with override:
+docker run -e ENVIRONMENT=dev myimage
+Inside container: $ENVIRONMENT = dev
+
+DOCKER COMMANDS :
+
+| Command                              | Description                                               |
+| ------------------------------------ | --------------------------------------------------------- |
+| `docker build -t <name>:<tag> .`     | Build an image from a Dockerfile in the current directory |
+| `docker images` or `docker image ls` | List all local images                                     |
+| `docker rmi <image>`                 | Remove an image                                           |
+| `docker pull <image>`                | Download an image from Docker Hub or registry             |
+| `docker push <image>`                | Upload an image to a registry                             |
+| `docker tag <source> <target>`       | Tag an image for pushing to a registry                    |
+| `docker history <image>`             | Show image build history                                  |
+
+| Command                                 | Description                             |
+| --------------------------------------- | --------------------------------------- |
+| `docker run <image>`                    | Run a container from an image           |
+| `docker run -it <image> /bin/bash`      | Run container interactively with shell  |
+| `docker ps`                             | List running containers                 |
+| `docker ps -a`                          | List all containers (including stopped) |
+| `docker stop <container>`               | Stop a running container                |
+| `docker start <container>`              | Start a stopped container               |
+| `docker restart <container>`            | Restart a container                     |
+| `docker rm <container>`                 | Remove a container                      |
+| `docker logs <container>`               | Show container logs                     |
+| `docker exec -it <container> /bin/bash` | Enter a running container               |
+| `docker inspect <container>`            | Detailed info about container           |
+
+| Command                                    | Description                       |
+| ------------------------------------------ | --------------------------------- |
+| `docker volume create <name>`              | Create a volume                   |
+| `docker volume ls`                         | List volumes                      |
+| `docker volume rm <name>`                  | Remove a volume                   |
+| `docker run -v <volume>:<container_path>`  | Mount volume in container         |
+| `docker cp <container>:<path> <host_path>` | Copy files from container to host |
+| `docker cp <host_path> <container>:<path>` | Copy files from host to container |
+
+| Command                          | Description                    |
+| -------------------------------- | ------------------------------ |
+| `docker network ls`              | List networks                  |
+| `docker network create <name>`   | Create a network               |
+| `docker network rm <name>`       | Remove a network               |
+| `docker run --network <network>` | Connect container to a network |
+
+| Command                  | Description                                                 |
+| ------------------------ | ----------------------------------------------------------- |
+| `docker system df`       | Show disk usage of Docker images, containers, volumes       |
+| `docker system prune`    | Remove stopped containers, unused networks, dangling images |
+| `docker container prune` | Remove all stopped containers                               |
+| `docker image prune`     | Remove unused/dangling images                               |
+| `docker volume prune`    | Remove unused volumes                                       |
+
+| Command                                    | Description                              |
+| ------------------------------------------ | ---------------------------------------- |
+| `docker build --build-arg <ARG>=<value> .` | Override ARG values at build-time        |
+| `docker build -t <name>:<tag> .`           | Give image a name and tag while building |
+| `docker build --no-cache .`                | Build without using cache                |
+
+| Command                            | Description                                   |
+| ---------------------------------- | --------------------------------------------- |
+| `docker run -d <image>`            | Run container in detached mode (background)   |
+| `docker run -p <host>:<container>` | Map ports from container to host              |
+| `docker run -e <VAR>=<value>`      | Set environment variable in container         |
+| `docker run --name <name> <image>` | Give a container a custom name                |
+| `docker run --rm <image>`          | Automatically remove container after it stops |
+
+| Command                                   | Description                                      |
+| ----------------------------------------- | ------------------------------------------------ |
+| `docker-compose up`                       | Start all services defined in docker-compose.yml |
+| `docker-compose up -d`                    | Start services in detached mode                  |
+| `docker-compose down`                     | Stop and remove containers, networks, volumes    |
+| `docker-compose build`                    | Build images defined in docker-compose.yml       |
+| `docker-compose logs`                     | Show logs for all services                       |
+| `docker-compose exec <service> /bin/bash` | Enter a running service container                |
+
+| Command                                   | Description                                          |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `docker buildx build`                     | Advanced build command with multi-platform support   |
+| `docker save <image> -o <file.tar>`       | Save an image to a tar file for export               |
+| `docker load -i <file.tar>`               | Load an image from a tar file                        |
+| `docker history --no-trunc <image>`       | Show full history of layers in an image              |
+| `docker commit <container> <new_image>`   | Save the current state of a container as a new image |
+| `docker export <container> -o <file.tar>` | Export a container’s filesystem to a tar file        |
+
+
+| Command                                                    | Description                                                    |
+| ---------------------------------------------------------- | -------------------------------------------------------------- |
+| `docker attach <container>`                                | Attach your terminal to a running container                    |
+| `docker top <container>`                                   | Show processes running inside a container                      |
+| `docker stats`                                             | Real-time resource usage (CPU, memory, network) for containers |
+| `docker port <container>`                                  | Show port mappings for a container                             |
+| `docker update --cpu=<value> --memory=<value> <container>` | Dynamically update resource limits for a running container     |
+| `docker rename <old_name> <new_name>`                      | Rename a container                                             |
+| `docker pause <container>` / `docker unpause <container>`  | Pause and resume a container’s processes                       |
+
+
+| Command                                           | Description                                      |
+| ------------------------------------------------- | ------------------------------------------------ |
+| `docker network inspect <network>`                | Show detailed info about a network               |
+| `docker network connect <network> <container>`    | Connect a running container to a network         |
+| `docker network disconnect <network> <container>` | Disconnect a container from a network            |
+| `docker run --network=host`                       | Use host network mode for performance or testing |
+
+
+| Command                                         | Description                                                                 |
+| ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `docker volume inspect <volume>`                | Show detailed info about a volume                                           |
+| `docker run -v <host_path>:<container_path>:ro` | Mount volume as read-only                                                   |
+| `docker diff <container>`                       | Show filesystem changes in a container since it started                     |
+| `docker system df -v`                           | Detailed view of disk usage by images, containers, volumes, and build cache |
+
+
+| Command                                                   | Description                                                  |
+| --------------------------------------------------------- | ------------------------------------------------------------ |
+| `docker logs -f <container>`                              | Follow logs in real time                                     |
+| `docker logs --tail <n> <container>`                      | Show only the last n lines of logs                           |
+| `docker events`                                           | Stream real-time Docker events (container start, stop, etc.) |
+| `docker inspect --format '{{.State.Status}}' <container>` | Get specific info using Go templates                         |
+
+
+| Command                            | Description                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------- |
+| `docker trust sign <image>`        | Sign an image for content trust                                            |
+| `docker trust inspect <image>`     | Verify image signature                                                     |
+| `docker system prune -a --volumes` | Aggressive cleanup of all unused images, containers, networks, and volumes |
+
+
+
+
