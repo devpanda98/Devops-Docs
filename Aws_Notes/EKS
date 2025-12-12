@@ -4,3 +4,199 @@ EKS is a managed control plane not a managed data plane .
 🔹 You manage the Data Plane — worker nodes and workloads.
 
 you can create ec2 instance and add as worker nodes or use fargate in eks.
+
+Step 0 — Prerequisites
+
+AWS account with permissions to create VPC, IAM, EKS, EC2, and load balancers
+
+kubectl installed and configured locally
+
+AWS CLI installed
+
+Familiarity with basic networking concepts (VPC, subnets, IGW/NAT)
+
+Step 1 — VPC Setup
+
+We start by creating a network for our cluster.
+
+1.1 Create a VPC
+
+Name: eks-lab-vpc
+
+CIDR: e.g., 10.0.0.0/16 (allows many subnets and pods)
+
+1.2 Create Subnets
+
+We use 3 AZs for high availability.
+
+Subnet Type	Count	CIDR Example	Notes
+Public	3	10.0.0.0/24, 10.0.1.0/24, 10.0.2.0/24	For Load Balancers and NAT Gateways
+Private	3	10.0.10.0/24, 10.0.11.0/24, 10.0.12.0/24	For worker nodes & pods
+
+Total subnets = 6 (1 public + 1 private per AZ)
+
+1.3 Internet Gateway (IGW)
+
+Create an IGW and attach it to the VPC
+
+Public subnets route to the IGW → allows internet traffic to Load Balancers
+
+1.4 NAT Gateways
+
+Create one NAT Gateway per AZ in each public subnet
+
+Update private subnet route tables to route 0.0.0.0/0 via the NAT in the same AZ
+
+This ensures private nodes can access the internet for updates and image pulls
+
+1.5 Route Tables
+
+1 Public Route Table → all public subnets → route to IGW
+
+3 Private Route Tables → each private subnet → route via NAT in its AZ
+
+Step 2 — IAM Roles Setup
+
+EKS requires specific IAM roles for control plane, nodes, and optionally pods (IRSA).
+
+2.1 Cluster Role
+
+AWS-managed policy: AmazonEKSClusterPolicy
+
+Trusted entity: eks.amazonaws.com
+
+Name: eks-demo-cluster-role
+
+Purpose: Allows control plane to manage AWS resources
+
+2.2 Node Instance Role
+
+AWS-managed policies:
+
+AmazonEKSWorkerNodePolicy
+
+AmazonEC2ContainerRegistryReadOnly
+
+AmazonEKS_CNI_Policy
+
+Trusted entity: ec2.amazonaws.com
+
+Name: eks-demo-node-role
+
+Purpose: EC2 worker nodes can join cluster, pull images, and manage networking
+
+2.3 OIDC + IRSA (Optional)
+
+Enable OIDC provider for the cluster (eksctl can do this automatically)
+
+Create IAM roles for service accounts → pods can assume IAM permissions securely
+
+Step 3 — Create EKS Cluster
+3.1 Cluster Basics
+
+Cluster Name: eks-demo-cluster
+
+Kubernetes Version: e.g., 1.29
+
+Cluster IAM Role: eks-demo-cluster-role
+
+3.2 Networking
+
+VPC: eks-lab-vpc
+
+Subnets: select private subnets only for the control plane to talk to nodes
+
+Security Groups: default or custom control plane SG
+
+3.3 Add-ons (Managed by AWS)
+
+VPC CNI → networking for pods
+
+CoreDNS → internal DNS resolution
+
+KubeProxy → service routing
+
+Optional: CloudWatch logging, EBS CSI driver, etc.
+
+3.4 Create Cluster
+
+Click Create → wait ~10–15 minutes
+
+AWS provisions a multi-AZ control plane automatically
+
+Step 4 — Create Node Groups
+4.1 Node Group Basics
+
+Name: eks-demo-ng-1
+
+Node IAM Role: eks-demo-node-role
+
+SSH Access: optional (key pair)
+
+4.2 Compute Configuration
+
+Instance Type: t3.medium (practice)
+
+Desired Nodes: 1
+
+Min/Max Nodes: 1/3
+
+Capacity Type: On-demand (spot optional for practice)
+
+4.3 Networking
+
+Subnets: private subnets
+
+Security Groups: eks-node-sg
+
+Node group will bootstrap automatically with kubelet, kube-proxy, and aws-vpc-cni
+
+4.4 Verify Nodes
+kubectl get nodes
+
+
+STATUS should be Ready
+
+Nodes are now ready to run pods
+
+✅ Summary of What We Achieved So Far
+
+VPC Setup
+
+1 VPC, 6 subnets (3 public, 3 private)
+
+IGW for public subnets
+
+NAT gateways for private subnets
+
+Route tables configured per AZ
+
+IAM Roles
+
+Cluster role for control plane
+
+Node role for worker nodes
+
+Optional IRSA for pods
+
+EKS Cluster Creation
+
+Control plane active
+
+Add-ons installed: VPC CNI, CoreDNS, KubeProxy
+
+Node Groups
+
+Managed node group added
+
+Nodes automatically bootstrapped
+
+Nodes Ready → cluster ready to run workloads
+
+After this, your cluster is fully functional, and the next steps would be:
+
+Deploy pods and services
+
+Configure ALB/NLB for external access
+
+Map custom DNS if needed
