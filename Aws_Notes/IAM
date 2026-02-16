@@ -1,1 +1,27 @@
+aws IAM cli commands:
+
+aws iam create-user --user-name developer1
+aws iam delete-user --user-name developer1
+aws iam create-user --user-name developer1
+aws iam delete-user --user-name developer1
+aws iam list-groups
+aws iam add-user-to-group --user-name developer1 --group-name Developers
+aws iam remove-user-from-group --user-name developer1 --group-name Developers
+aws iam attach-group-policy --group-name Developers --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+aws iam list-attached-group-policies --group-name Developers
+aws iam attach-user-policy --user-name developer1 --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+aws iam detach-user-policy --user-name developer1 --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+aws iam list-attached-user-policies --user-name developer1
+aws iam update-user --user-name developer1 --new-user-name developer2
+aws iam update-assume-role-policy --role-name EC2-S3-Role --policy-document file://trust-policy.json
+
+
+
+
+
+-----------
+
+aws EBS (ELASTIC BLOCK STORAGE):
+***
+
 
