@@ -1,2 +1,64 @@
-azure blob storage:
----------
+azure storage services:
+---------------------
+
+create azure storage account :
+
+Subscription >> Resource group >> Instance details (Storage account name >> Region >> Preferred storage type >> Performance (Standard or Premium)
+>> Redundancy >> 
+
+
+
+access level for storage resources:
+------------
+
+we have 2 typs of access level :
+          - Anonymos : anybody can access th storage (ex> files , videos , images)
+          - private : access key and connection string required to access storage resource
+
+if private access is enabled at storage account level then we can not add container or blob in that storage account with annonymous access
+
+if annonymous access is enabled for storage account then there are 2 other access level as well 
+- Blob : Annonymous read access for Blob only not for container of the blob 
+- Container:  Annonymous read access for container and blobs within container
+
+virtual directory in azure blob storage:
+----------------------------
+A Virtual Directory in Azure Blob Storage is a logical folder structure used to organize blobs inside a container. It is called “virtual” because it does not physically exist—it is created using the blob name.
+
+Storage Account
+ └── Container
+      └── Blobs (flat structure)
+BlobServiceClient → Used to manage Storage Account and containers
+BlobContainerClient → Used to manage containers and blobs inside container
+BlobClient → Used to manage individual blobs (upload, download, delete)
+
+[BlobServiceClient, BlobContainerClient, and BlobClient are NOT used with Azure CLI.
+They are used in programming (SDKs) like C#, Python, Java, etc.]
+
+access key and conection string :
+------------
+Access Key is a secret key used to authenticate access to Azure Storage Account. Connection String contains the Access Key, Account Name, and endpoint information, and is used by applications to connect to Azure Storage easily and securely.
+connection string is a permanent and full access to the entire azure storage account.
+If you want to give specific access like read access or access to a container oly then you need to use SAS
+
+SAS(shared access signature):
+----------------------------------
+A SAS (Shared Access Signature) in Azure Storage is used to give limited and secure access to your storage resources without exposing your Access Key.
+SAS solves this by giving:
+
+Limited permissions ✅
+Limited time access ✅
+Limited resource access ✅
+
+create a SAS token :
+------
+there is 3 levels of SAS token , sas at storage account level , at container level and at blob level
+
+SAS at Storage account level :  go to Shared access token in storgae account >> allowd services >> allowed resource types >> allowed permissions >> blob versioning permission >>
+>> blob index permission >> start and expiry date and time >> source ips >> allowed protocols >> prefered routing >> generate sas token 
+
+after this it wiill give you the connection string and sas token ,  here the connection string will not give permanent access here it will give only the access for the time you chose and level of access you chose 
+
+to access the blob
+blob_string?sas token (url of the blob the question mark and then the sas token and browse)
+
